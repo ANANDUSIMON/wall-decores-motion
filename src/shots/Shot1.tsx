@@ -1,75 +1,17 @@
 import React from 'react';
-import {AbsoluteFill, Easing, interpolate, useCurrentFrame} from 'remotion';
+import {AbsoluteFill,useCurrentFrame} from 'remotion';
 import {BrushStroke} from '../BrushStroke';
 import {PostFX} from '../PostFX';
-import {C, EASE, FONT} from '../theme';
+import {Texture} from '../Texture';
+import {C,GRID,tween,type} from '../theme';
 
-export const Shot1: React.FC = () => {
-  const frame = useCurrentFrame();
-  const e = Easing.bezier(...EASE);
-  const clamp = {extrapolateLeft: 'clamp' as const, extrapolateRight: 'clamp' as const};
-
-  return (
-    <PostFX>
-      <AbsoluteFill style={{backgroundColor: C.nearBlack}}>
-        {/* Cream field revealed behind brush */}
-        <AbsoluteFill
-          style={{
-            backgroundColor: C.cream,
-            opacity: interpolate(frame, [10, 50], [0, 1], {...clamp, easing: e}),
-          }}
-        />
-
-        {/* Gold hairline */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '10%',
-            width: '80%',
-            height: 1,
-            backgroundColor: C.gold,
-            opacity: interpolate(frame, [0, 20], [0, 1], {...clamp, easing: e}),
-          }}
-        />
-
-        {/* Diagonal brush swipe */}
-        <BrushStroke
-          color={C.gold}
-          progress={interpolate(frame, [5, 45], [0, 1], {...clamp, easing: e})}
-          x1={200}
-          y1={900}
-          x2={1720}
-          y2={180}
-          width={120}
-          bristleCount={70}
-          seed={101}
-        />
-
-        {/* Kicker */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 160,
-            width: '100%',
-            textAlign: 'center' as const,
-            opacity: interpolate(frame, [35, 55], [0, 1], {...clamp, easing: e}),
-            translate: `0px ${interpolate(frame, [35, 55], [20, 0], {...clamp, easing: e})}px`,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: FONT,
-              fontSize: 24,
-              letterSpacing: '0.25em',
-              color: C.gold,
-              fontWeight: 400,
-            }}
-          >
-            ANGAMALY · KERALA
-          </span>
-        </div>
-      </AbsoluteFill>
-    </PostFX>
-  );
+export const Shot1: React.FC=()=>{
+  const f=useCurrentFrame(), line=tween(f,0,12), paint=tween(f,9,32), rule=tween(f,25,40);
+  return <PostFX><AbsoluteFill style={{background:C.nearBlack,overflow:'hidden'}}>
+    <div style={{position:'absolute',left:GRID.margin,top:540,width:1680,height:2,background:C.gold,transform:`scaleX(${line})`,filter:f<12?'drop-shadow(8px 0 5px #c8a87088)':undefined}}/>
+    <AbsoluteFill style={{clipPath:`polygon(0 0,${Math.max(0,paint*115-15)}% 0,${Math.max(0,paint*115+22)}% 100%,0 100%)`}}><Texture light/></AbsoluteFill>
+    <BrushStroke color={C.gold} x1={165} y1={90} x2={1770} y2={840} thickness={130} bristleCount={78} dryness={.14} revealStart={9} revealDuration={.8} seed={101}/>
+    <div style={{position:'absolute',left:680,top:0,width:2,height:360,background:C.gold,transform:`scaleY(${rule})`,transformOrigin:'top'}}/>
+    <div style={{position:'absolute',left:GRID.margin,bottom:112,...type.kicker,color:C.nearBlack,opacity:tween(f,36,49),transform:`translateY(${tween(f,36,49,14,0)}px)`}}>ANGAMALY � KERALA</div>
+  </AbsoluteFill></PostFX>;
 };

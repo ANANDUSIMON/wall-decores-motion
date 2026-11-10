@@ -1,60 +1,25 @@
 import React from 'react';
-import {AbsoluteFill, Easing, interpolate, useCurrentFrame} from 'remotion';
+import {AbsoluteFill,useCurrentFrame} from 'remotion';
 import {BrushStroke} from '../BrushStroke';
 import {PostFX} from '../PostFX';
-import {C, EASE, FONT} from '../theme';
+import {C,GRID,tween,type} from '../theme';
 
-export const Shot3: React.FC = () => {
-  const frame = useCurrentFrame();
-  const e = Easing.bezier(...EASE);
-  const clamp = {extrapolateLeft: 'clamp' as const, extrapolateRight: 'clamp' as const};
-
-  const cols = [
-    {x: 440, color: C.gold, label: 'HAND-MIXED', strokeStart: 0, textStart: 18, seed: 301},
-    {x: 960, color: C.emerald, label: 'HAND-LAID', strokeStart: 25, textStart: 43, seed: 302},
-    {x: 1480, color: C.burntOrange, label: 'HAND-FINISHED', strokeStart: 50, textStart: 68, seed: 303},
-  ];
-
-  return (
-    <PostFX>
-      <AbsoluteFill style={{backgroundColor: C.nearBlack}}>
-        {cols.map((col) => (
-          <React.Fragment key={col.seed}>
-            {/* Vertical brush stroke */}
-            <BrushStroke
-              color={col.color}
-              progress={interpolate(frame, [col.strokeStart, col.strokeStart + 40], [0, 1], {...clamp, easing: e})}
-              x1={col.x}
-              y1={140}
-              x2={col.x}
-              y2={780}
-              width={50}
-              bristleCount={55}
-              seed={col.seed}
-            />
-
-            {/* Rolling text label */}
-            <div
-              style={{
-                position: 'absolute',
-                top: 830,
-                left: col.x - 160,
-                width: 320,
-                textAlign: 'center' as const,
-                opacity: interpolate(frame, [col.textStart, col.textStart + 15], [0, 1], {...clamp, easing: e}),
-                translate: `0px ${interpolate(frame, [col.textStart, col.textStart + 15], [30, 0], {...clamp, easing: e})}px`,
-                fontFamily: FONT,
-                fontSize: 22,
-                letterSpacing: '0.2em',
-                color: C.cream,
-                fontWeight: 400,
-              }}
-            >
-              {col.label}
-            </div>
-          </React.Fragment>
-        ))}
-      </AbsoluteFill>
-    </PostFX>
-  );
+const lines=['HAND-MIXED','HAND-LAID','HAND-FINISHED'];
+export const Shot3: React.FC=()=>{
+  const f=useCurrentFrame();
+  return <PostFX><AbsoluteFill style={{background:C.nearBlack,overflow:'hidden'}}>
+    <AbsoluteFill style={{background:C.emerald,clipPath:`polygon(0 0,${100-tween(f,0,9,0,120)}% 0,${125-tween(f,0,9,0,120)}% 100%,0 100%)`}}/>
+    {[0,1,2].map((i)=><React.Fragment key={i}>
+      <div style={{position:'absolute',left:GRID.margin+i*560,top:130,width:1,height:790,background:C.cream,opacity:.08}}/>
+      <BrushStroke x1={400+i*560} y1={135} x2={400+i*560} y2={790} color={[C.gold,C.emerald,C.burntOrange][i]} thickness={125} bristleCount={72} seed={301+i} revealStart={9+i*4} revealDuration={.7}/>
+    </React.Fragment>)}
+    <div style={{position:'absolute',left:GRID.margin,top:320,width:1680,height:170,overflow:'hidden'}}>
+      {lines.map((label,i)=>{
+        const start=21+i*32, enter=tween(f,start,start+10), leave=i===2?0:tween(f,start+24,start+32);
+        return <div key={label} style={{position:'absolute',left:0,top:0,...type.display,fontSize:142,color:C.cream,
+          opacity:enter*(1-leave),transform:`translateY(${(1-enter)*145-leave*145}px)`}}>{label}</div>;
+      })}
+    </div>
+    <div style={{position:'absolute',right:GRID.margin,bottom:112,...type.kicker,color:C.gold,opacity:tween(f,70,82),transform:`translateY(${tween(f,70,82,14,0)}px)`}}>FIVE YEARS � ONE STUDIO</div>
+  </AbsoluteFill></PostFX>;
 };

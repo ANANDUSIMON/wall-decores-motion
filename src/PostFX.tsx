@@ -1,52 +1,18 @@
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 
-export const PostFX: React.FC<{children: React.ReactNode}> = ({children}) => {
-  const frame = useCurrentFrame();
-
-  return (
-    <AbsoluteFill>
-      {children}
-
-      {/* Film grain — animated 5 % overlay */}
-      <AbsoluteFill
-        style={{mixBlendMode: 'overlay', opacity: 0.05, pointerEvents: 'none'}}
-      >
-        <svg width="100%" height="100%">
-          <filter id="grain">
-            <feTurbulence
-              type="fractalNoise"
-              baseFrequency="0.65"
-              numOctaves={3}
-              seed={frame}
-            />
-          </filter>
-          <rect width="100%" height="100%" filter="url(#grain)" />
-        </svg>
-      </AbsoluteFill>
-
-      {/* Canvas-weave texture */}
-      <AbsoluteFill
-        style={{
-          opacity: 0.04,
-          pointerEvents: 'none',
-          backgroundImage: [
-            'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.3) 3px,rgba(0,0,0,.3) 4px)',
-            'repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(0,0,0,.3) 3px,rgba(0,0,0,.3) 4px)',
-          ].join(', '),
-        }}
-      />
-
-      {/* Vignette + 1 px chromatic fringe */}
-      <AbsoluteFill
-        style={{
-          background:
-            'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)',
-          boxShadow:
-            'inset 1px 0 0 rgba(255,0,0,0.06), inset -1px 0 0 rgba(0,100,255,0.06)',
-          pointerEvents: 'none',
-        }}
-      />
+// Applied inside every shot so the individual compositions rendered by GitHub carry the same finish.
+export const PostFX: React.FC<{children: React.ReactNode; hardCut?: boolean}> = ({children,hardCut=false}) => {
+  const frame=useCurrentFrame();
+  const fringe=hardCut && (frame<2 || frame===33 || frame===34);
+  return <AbsoluteFill>
+    {children}
+    <AbsoluteFill style={{pointerEvents:'none',opacity:.05,mixBlendMode:'overlay'}}>
+      <svg width="100%" height="100%"><defs><filter id="film-grain"><feTurbulence type="fractalNoise" baseFrequency=".66" numOctaves={2} seed={frame+1}/></filter></defs>
+        <rect width="100%" height="100%" filter="url(#film-grain)"/>
+      </svg>
     </AbsoluteFill>
-  );
+    <AbsoluteFill style={{pointerEvents:'none',background:'radial-gradient(ellipse at center,transparent 34%,rgba(0,0,0,.45) 100%)'}}/>
+    {fringe && <AbsoluteFill style={{pointerEvents:'none',boxShadow:'inset 1px 0 rgba(255,40,35,.24),inset -1px 0 rgba(25,95,220,.24)'}}/>}
+  </AbsoluteFill>;
 };

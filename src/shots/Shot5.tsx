@@ -1,111 +1,26 @@
 import React from 'react';
-import {AbsoluteFill, Easing, interpolate, useCurrentFrame} from 'remotion';
+import {AbsoluteFill,useCurrentFrame} from 'remotion';
 import {PostFX} from '../PostFX';
-import {C, EASE, FONT} from '../theme';
+import {Texture} from '../Texture';
+import {C,GRID,tween,type} from '../theme';
 
-export const Shot5: React.FC = () => {
-  const frame = useCurrentFrame();
-  const e = Easing.bezier(...EASE);
-  const clamp = {extrapolateLeft: 'clamp' as const, extrapolateRight: 'clamp' as const};
-
-  const frameW = 1200;
-  const frameH = 600;
-  const frameX = (1920 - frameW) / 2;
-  const frameY = (1080 - frameH) / 2;
-  const perimeter = 2 * (frameW + frameH);
-
-  return (
-    <PostFX>
-      <AbsoluteFill style={{backgroundColor: C.nearBlack}}>
-        {/* Gold canvas-stretcher frame */}
-        <svg
-          viewBox="0 0 1920 1080"
-          style={{position: 'absolute', inset: 0, width: '100%', height: '100%'}}
-        >
-          <rect
-            x={frameX}
-            y={frameY}
-            width={frameW}
-            height={frameH}
-            fill="none"
-            stroke={C.gold}
-            strokeWidth={2}
-            strokeDasharray={perimeter}
-            strokeDashoffset={interpolate(frame, [0, 30], [perimeter, 0], {
-              ...clamp,
-              easing: e,
-            })}
-          />
-          {/* Inner hairline */}
-          <rect
-            x={frameX + 16}
-            y={frameY + 16}
-            width={frameW - 32}
-            height={frameH - 32}
-            fill="none"
-            stroke={C.gold}
-            strokeWidth={0.5}
-            opacity={interpolate(frame, [20, 35], [0, 0.5], {...clamp, easing: e})}
-          />
-        </svg>
-
-        {/* IMPASTO */}
-        <div
-          style={{
-            position: 'absolute',
-            top: frameY + 120,
-            width: '100%',
-            textAlign: 'center' as const,
-            opacity: interpolate(frame, [18, 33], [0, 1], {...clamp, easing: e}),
-            translate: `0px ${interpolate(frame, [18, 33], [20, 0], {...clamp, easing: e})}px`,
-            fontFamily: FONT,
-            fontSize: 64,
-            fontWeight: 700,
-            letterSpacing: '0.12em',
-            color: C.gold,
-          }}
-        >
-          IMPASTO
-        </div>
-
-        {/* OIL ON CANVAS */}
-        <div
-          style={{
-            position: 'absolute',
-            top: frameY + 260,
-            width: '100%',
-            textAlign: 'center' as const,
-            opacity: interpolate(frame, [33, 48], [0, 1], {...clamp, easing: e}),
-            translate: `0px ${interpolate(frame, [33, 48], [20, 0], {...clamp, easing: e})}px`,
-            fontFamily: FONT,
-            fontSize: 28,
-            letterSpacing: '0.22em',
-            color: C.cream,
-            fontWeight: 400,
-          }}
-        >
-          OIL ON CANVAS
-        </div>
-
-        {/* BESPOKE SCALE */}
-        <div
-          style={{
-            position: 'absolute',
-            top: frameY + 360,
-            width: '100%',
-            textAlign: 'center' as const,
-            opacity: interpolate(frame, [48, 63], [0, 1], {...clamp, easing: e}),
-            translate: `0px ${interpolate(frame, [48, 63], [20, 0], {...clamp, easing: e})}px`,
-            fontFamily: FONT,
-            fontSize: 28,
-            letterSpacing: '0.22em',
-            color: C.cream,
-            fontWeight: 400,
-          }}
-        >
-          BESPOKE SCALE
-        </div>
-      </AbsoluteFill>
-    </PostFX>
-  );
+export const Shot5: React.FC=()=>{
+  const f=useCurrentFrame(), x=GRID.margin,y=205,w=970,h=650;
+  const segments=[
+    {x1:x,y1:y,x2:x+w,y2:y}, {x1:x+w,y1:y,x2:x+w,y2:y+h},
+    {x1:x+w,y1:y+h,x2:x,y2:y+h}, {x1:x,y1:y+h,x2:x,y2:y},
+  ];
+  return <PostFX><AbsoluteFill style={{background:C.nearBlack,overflow:'hidden'}}>
+    <AbsoluteFill style={{left:x+12,top:y+12,width:w-24,height:h-24,overflow:'hidden',opacity:tween(f,34,53),transform:`scale(${tween(f,0,105,1,1.07)})`}}><Texture/></AbsoluteFill>
+    <svg viewBox="0 0 1920 1080" style={{position:'absolute',inset:0,width:'100%',height:'100%'}}>
+      {segments.map((s,i)=> <line key={i} {...s} stroke={C.gold} strokeWidth="3" pathLength="1" strokeDasharray="1" strokeDashoffset={1-tween(f,i*9,i*9+17)}/>)}
+      <line x1="1090" y1="526" x2="1190" y2="526" stroke={C.gold} strokeWidth="1" pathLength="1" strokeDasharray="1" strokeDashoffset={1-tween(f,48,65)}/>
+      <circle cx="1090" cy="526" r="4" fill={C.gold} opacity={tween(f,55,65)}/>
+    </svg>
+    <div style={{position:'absolute',left:1220,top:396,width:565}}>
+      {['IMPASTO','OIL ON CANVAS','BESPOKE SCALE'].map((label,i)=><div key={label} style={{...type.body,fontSize:i===0?43:27,fontWeight:i===0?800:500,color:i===0?C.gold:C.cream,
+        marginBottom:34,letterSpacing:i===0?'.05em':'.12em',opacity:tween(f,39+i*11,52+i*11),transform:`translateY(${tween(f,39+i*11,52+i*11,24,0)}px)`}}>{label}</div>)}
+    </div>
+    <div style={{position:'absolute',left:GRID.margin,bottom:110,...type.kicker,color:C.gold}}>MADE FOR YOUR SPACE</div>
+  </AbsoluteFill></PostFX>;
 };

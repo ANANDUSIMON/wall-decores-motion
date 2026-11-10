@@ -1,106 +1,30 @@
-import React, {useMemo} from 'react';
-import {AbsoluteFill, Easing, interpolate, useCurrentFrame} from 'remotion';
-import {generateBristles} from '../BrushStroke';
+import React from 'react';
+import {AbsoluteFill,useCurrentFrame} from 'remotion';
+import {BrushStroke,generateBristles} from '../BrushStroke';
 import {PostFX} from '../PostFX';
-import {C, EASE, FONT} from '../theme';
+import {Texture} from '../Texture';
+import {C,GRID,tween,type} from '../theme';
 
-export const Shot2: React.FC = () => {
-  const frame = useCurrentFrame();
-  const e = Easing.bezier(...EASE);
-  const clamp = {extrapolateLeft: 'clamp' as const, extrapolateRight: 'clamp' as const};
-
-  const everyBristles = useMemo(
-    () => generateBristles({x1: 100, y1: 420, x2: 1820, y2: 420, width: 140, count: 55, seed: 201}),
-    [],
-  );
-  const surfaceBristles = useMemo(
-    () => generateBristles({x1: 100, y1: 680, x2: 1820, y2: 680, width: 140, count: 55, seed: 202}),
-    [],
-  );
-
-  const p1 = interpolate(frame, [5, 40], [0, 1], {...clamp, easing: e});
-  const p2 = interpolate(frame, [20, 55], [0, 1], {...clamp, easing: e});
-  const wipeX = interpolate(frame, [75, 105], [120, -20], {...clamp, easing: e});
-
-  const renderBrushMask = (
-    bristles: ReturnType<typeof generateBristles>,
-    progress: number,
-    maskId: string,
-    clipId: string,
-  ) => (
-    <>
-      <clipPath id={clipId}>
-        <rect x={0} y={0} width={1920 * progress} height={1080} />
-      </clipPath>
-      <mask id={maskId}>
-        <rect width="1920" height="1080" fill="black" />
-        <g clipPath={`url(#${clipId})`}>
-          {bristles.map((b, i) => (
-            <path
-              key={i}
-              d={b.d}
-              stroke="white"
-              strokeWidth={b.strokeWidth * 14}
-              fill="none"
-              opacity={b.opacity}
-              strokeLinecap="round"
-              strokeDasharray={b.dashArray}
-            />
-          ))}
-        </g>
-      </mask>
-    </>
-  );
-
-  return (
-    <PostFX>
-      <AbsoluteFill style={{backgroundColor: C.nearBlack}}>
-        {/* Brush-matte text reveals */}
-        <svg
-          viewBox="0 0 1920 1080"
-          style={{position: 'absolute', inset: 0, width: '100%', height: '100%'}}
-        >
-          <defs>
-            {renderBrushMask(everyBristles, p1, 'every-mask', 'every-clip')}
-            {renderBrushMask(surfaceBristles, p2, 'surface-mask', 'surface-clip')}
-          </defs>
-
-          <text
-            mask="url(#every-mask)"
-            x="960"
-            y="460"
-            textAnchor="middle"
-            fill={C.cream}
-            fontFamily="Georgia, serif"
-            fontSize="140"
-            fontWeight={800}
-            letterSpacing="0.06em"
-          >
-            EVERY
-          </text>
-          <text
-            mask="url(#surface-mask)"
-            x="960"
-            y="720"
-            textAnchor="middle"
-            fill={C.cream}
-            fontFamily="Georgia, serif"
-            fontSize="140"
-            fontWeight={800}
-            letterSpacing="0.06em"
-          >
-            SURFACE
-          </text>
-        </svg>
-
-        {/* Emerald diagonal transition */}
-        <AbsoluteFill
-          style={{
-            backgroundColor: C.emerald,
-            clipPath: `polygon(${wipeX + 15}% 0%, 120% 0%, 120% 100%, ${wipeX}% 100%)`,
-          }}
-        />
-      </AbsoluteFill>
-    </PostFX>
-  );
+const Edge: React.FC<{id:string;y:number;p:number;seed:number}>=({id,y,p,seed})=>{
+  const bristles=generateBristles({x1:90,y1:y,x2:1740,y2:y,width:145,count:70,seed,dryness:.13});
+  return <mask id={id}><rect width="1920" height="1080" fill="black"/>
+    <rect x="0" y={y-119} width={Math.max(0,1590*p)} height="192" fill="white"/>
+    <g fill="white" transform={`translate(${1590*p-150} 0)`}>{bristles.map((b,i)=><path key={i} d={b.d} opacity={b.opacity}/>)}</g>
+  </mask>;
+};
+export const Shot2: React.FC=()=>{
+  const f=useCurrentFrame(), a=tween(f,5,25), b=tween(f,18,39), zoom=tween(f,0,105,1,1.08);
+  const slice=f<76?0:tween(f,76,103);
+  return <PostFX><AbsoluteFill style={{background:C.nearBlack,overflow:'hidden'}}>
+    <AbsoluteFill style={{left:910,top:170,width:850,height:750,clipPath:'polygon(2% 12%,93% 0,100% 88%,15% 100%,0 76%)',opacity:tween(f,15,36),transform:`scale(${zoom})`}}><Texture/></AbsoluteFill>
+    <svg viewBox="0 0 1920 1080" style={{position:'absolute',inset:0,width:'100%',height:'100%'}}>
+      <defs><Edge id="every-matte" y={390} p={a} seed={211}/><Edge id="surface-matte" y={618} p={b} seed={212}/></defs>
+      <text x={GRID.margin} y="465" mask="url(#every-matte)" fill={C.cream} style={type.display}>EVERY</text>
+      <text x={GRID.margin} y="692" mask="url(#surface-matte)" fill={C.cream} style={type.display}>SURFACE</text>
+    </svg>
+    <BrushStroke color={C.gold} x1={110} y1={390} x2={1450} y2={390} thickness={33} seed={213} progress={a}/>
+    <BrushStroke color={C.burntOrange} x1={110} y1={618} x2={1590} y2={618} thickness={34} seed={214} progress={b}/>
+    <div style={{position:'absolute',left:GRID.margin,bottom:104,...type.kicker,color:C.gold,opacity:tween(f,31,47),transform:`translateY(${tween(f,31,47,12,0)}px)`}}>TEXTURE IS THE HERO</div>
+    {slice>0 && <AbsoluteFill style={{background:C.emerald,clipPath:`polygon(${110-slice*145}% 100%,${135-slice*145}% 0,140% 0,140% 100%)`}}/>}
+  </AbsoluteFill></PostFX>;
 };

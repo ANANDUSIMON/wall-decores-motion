@@ -1,30 +1,129 @@
 import React from 'react';
-import {AbsoluteFill,useCurrentFrame} from 'remotion';
-import {BrushStroke,generateBristles} from '../BrushStroke';
-import {PostFX} from '../PostFX';
-import {Texture} from '../Texture';
-import {C,GRID,tween,type} from '../theme';
+import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
+import { palette, type, grid, ease, FONT_STACK } from '../theme';
+import { PaintingCanvas } from '../components/PaintingCanvas';
+import { MaskRise } from '../components/KineticText';
 
-const Edge: React.FC<{id:string;y:number;p:number;seed:number}>=({id,y,p,seed})=>{
-  const bristles=generateBristles({x1:90,y1:y,x2:1740,y2:y,width:145,count:70,seed,dryness:.13});
-  return <mask id={id}><rect width="1920" height="1080" fill="black"/>
-    <rect x="0" y={y-119} width={Math.max(0,1590*p)} height="192" fill="white"/>
-    <g fill="white" transform={`translate(${1590*p-150} 0)`}>{bristles.map((b,i)=><path key={i} d={b.d} opacity={b.opacity}/>)}</g>
-  </mask>;
-};
-export const Shot2: React.FC=()=>{
-  const f=useCurrentFrame(), a=tween(f,5,25), b=tween(f,18,39), zoom=tween(f,0,105,1,1.08);
-  const slice=f<76?0:tween(f,76,103);
-  return <PostFX><AbsoluteFill style={{background:C.nearBlack,overflow:'hidden'}}>
-    <AbsoluteFill style={{left:910,top:170,width:850,height:750,clipPath:'polygon(2% 12%,93% 0,100% 88%,15% 100%,0 76%)',opacity:tween(f,15,36),transform:`scale(${zoom})`}}><Texture/></AbsoluteFill>
-    <svg viewBox="0 0 1920 1080" style={{position:'absolute',inset:0,width:'100%',height:'100%'}}>
-      <defs><Edge id="every-matte" y={390} p={a} seed={211}/><Edge id="surface-matte" y={618} p={b} seed={212}/></defs>
-      <text x={GRID.margin} y="465" mask="url(#every-matte)" fill={C.cream} style={type.display}>EVERY</text>
-      <text x={GRID.margin} y="692" mask="url(#surface-matte)" fill={C.cream} style={type.display}>SURFACE</text>
-    </svg>
-    <BrushStroke color={C.gold} x1={110} y1={390} x2={1450} y2={390} thickness={33} seed={213} progress={a}/>
-    <BrushStroke color={C.burntOrange} x1={110} y1={618} x2={1590} y2={618} thickness={34} seed={214} progress={b}/>
-    <div style={{position:'absolute',left:GRID.margin,bottom:104,...type.kicker,color:C.gold,opacity:tween(f,31,47),transform:`translateY(${tween(f,31,47,12,0)}px)`}}>TEXTURE IS THE HERO</div>
-    {slice>0 && <AbsoluteFill style={{background:C.emerald,clipPath:`polygon(${110-slice*145}% 100%,${135-slice*145}% 0,140% 0,140% 100%)`}}/>}
-  </AbsoluteFill></PostFX>;
+/** SHOT 2 — THE DROP · 150 frames (5.0s)
+ *  The hero shot. Five canvases fall into frame with real weight, staggered
+ *  so the eye tracks left to right. Motion blur comes off the fall curve
+ *  itself, so the smear is honest — fast canvases streak, settled ones are
+ *  razor sharp. Type lands only once the paint has stopped moving.
+ */
+export const Shot2: React.FC = () => {
+  const frame = useCurrentFrame();
+
+  const canvases = [
+    { x: 300,  y: 470, w: 240, h: 320, d: 0,  c: palette.emerald, a: palette.emeraldDeep, r: -3, s: 11 },
+    { x: 620,  y: 560, w: 300, h: 400, d: 7,  c: palette.gold,    a: '#9a7b3c',           r: 2,  s: 23 },
+    { x: 980,  y: 440, w: 340, h: 460, d: 14, c: palette.amber,   a: palette.amberDeep,   r: -2, s: 37 },
+    { x: 1360, y: 580, w: 270, h: 360, d: 21, c: palette.teal,    a: '#14615f',           r: 4,  s: 51 },
+    { x: 1660, y: 470, w: 210, h: 290, d: 28, c: palette.rose,    a: '#8e2f50',           r: -5, s: 67 },
+  ];
+
+  // Floor shadow pool darkens as canvases settle.
+  const pool = interpolate(frame, [20, 60], [0, 0.5], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
+  // Slow pull-back once everything has landed.
+  const scale = interpolate(frame, [55, 150], [1.06, 1.0], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: ease.cinematic,
+  });
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: palette.ink }}>
+      <AbsoluteFill style={{ transform: `scale(${scale})` }}>
+        {/* warm pool of light the canvases land into */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: `radial-gradient(ellipse 60% 44% at 50% 62%,
+              rgba(212,178,106,${0.1 + pool * 0.12}) 0%,
+              rgba(0,0,0,0) 70%)`,
+          }}
+        />
+
+        {canvases.map((c) => (
+          <PaintingCanvas
+            key={c.s}
+            x={c.x}
+            y={c.y}
+            width={c.w}
+            height={c.h}
+            delay={c.d}
+            color={c.c}
+            accent={c.a}
+            rotate={c.r}
+            seed={c.s}
+            dropFrom={1500}
+            mass={1.1 + (c.h / 460) * 0.5}
+          />
+        ))}
+
+        {/* contact shadows on the floor line */}
+        {canvases.map((c) => (
+          <div
+            key={`sh-${c.s}`}
+            style={{
+              position: 'absolute',
+              left: c.x - c.w * 0.6,
+              top: c.y + c.h / 2 - 8,
+              width: c.w * 1.2,
+              height: 26,
+              background: `radial-gradient(ellipse at center, rgba(0,0,0,${pool}) 0%, rgba(0,0,0,0) 72%)`,
+              filter: 'blur(6px)',
+            }}
+          />
+        ))}
+
+        {/* type lands after the paint stops */}
+        <div
+          style={{
+            position: 'absolute',
+            left: grid.margin,
+            bottom: grid.margin + 10,
+          }}
+        >
+          <MaskRise
+            start={62}
+            duration={20}
+            color={palette.cream}
+            style={{ ...type.displaySm }}
+          >
+            FIVE YEARS
+          </MaskRise>
+          <MaskRise
+            start={70}
+            duration={20}
+            color={palette.gold}
+            style={{ ...type.displaySm }}
+          >
+            ONE STUDIO
+          </MaskRise>
+        </div>
+
+        <div
+          style={{
+            position: 'absolute',
+            right: grid.margin,
+            bottom: grid.margin + 16,
+            ...type.kicker,
+            fontFamily: FONT_STACK,
+            color: palette.creamDim,
+            opacity: interpolate(frame, [86, 100], [0, 1], {
+              extrapolateLeft: 'clamp',
+              extrapolateRight: 'clamp',
+            }),
+          }}
+        >
+          Handcrafted · Kerala
+        </div>
+      </AbsoluteFill>
+    </AbsoluteFill>
+  );
 };

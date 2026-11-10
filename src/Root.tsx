@@ -1,31 +1,55 @@
 import React from 'react';
-import {Composition, Folder} from 'remotion';
-import {BrandFilm} from './BrandFilm';
-import {Shot1} from './shots/Shot1';
-import {Shot2} from './shots/Shot2';
-import {Shot3} from './shots/Shot3';
-import {Shot4} from './shots/Shot4';
-import {Shot5} from './shots/Shot5';
-import {Shot6} from './shots/Shot6';
-import {SHOTS, TOTAL_FRAMES} from './theme';
+import { Composition } from 'remotion';
+import { FPS, WIDTH, HEIGHT } from './theme';
+import { BrandFilm, SHOTS, TOTAL_FRAMES } from './BrandFilm';
+import { PostFX } from './components/PostFX';
 
-export const RemotionRoot: React.FC = () => (
-  <>
-    <Folder name="Shots">
-      <Composition id="Shot1" component={Shot1} width={1920} height={1080} fps={30} durationInFrames={SHOTS.Shot1} />
-      <Composition id="Shot2" component={Shot2} width={1920} height={1080} fps={30} durationInFrames={SHOTS.Shot2} />
-      <Composition id="Shot3" component={Shot3} width={1920} height={1080} fps={30} durationInFrames={SHOTS.Shot3} />
-      <Composition id="Shot4" component={Shot4} width={1920} height={1080} fps={30} durationInFrames={SHOTS.Shot4} />
-      <Composition id="Shot5" component={Shot5} width={1920} height={1080} fps={30} durationInFrames={SHOTS.Shot5} />
-      <Composition id="Shot6" component={Shot6} width={1920} height={1080} fps={30} durationInFrames={SHOTS.Shot6} />
-    </Folder>
-    <Composition
-      id="BrandFilm"
-      component={BrandFilm}
-      width={1920}
-      height={1080}
-      fps={30}
-      durationInFrames={TOTAL_FRAMES}
-    />
-  </>
-);
+/**
+ * Compositions registered here:
+ *
+ *   BrandFilm        the whole 24s film, for preview and single-machine render
+ *   Shot1 ... Shot6  one per shot, so the GitHub Actions matrix can render
+ *                    all six in parallel and concat them losslessly
+ *
+ * Every shot composition carries the same PostFX grade, so the six files are
+ * visually continuous and `-c copy` concat produces a seamless film.
+ */
+
+export const RemotionRoot: React.FC = () => {
+  return (
+    <>
+      <Composition
+        id="BrandFilm"
+        component={BrandFilm}
+        durationInFrames={TOTAL_FRAMES}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+      />
+
+      {SHOTS.map(({ id, Comp, durationInFrames, localCuts, fx }) => {
+        const Wrapped: React.FC = () => (
+          <PostFX
+            cutFrames={localCuts}
+            bloom={fx.bloom}
+            grain={fx.grain}
+            vignette={fx.vignette}
+          >
+            <Comp />
+          </PostFX>
+        );
+        return (
+          <Composition
+            key={id}
+            id={id}
+            component={Wrapped}
+            durationInFrames={durationInFrames}
+            fps={FPS}
+            width={WIDTH}
+            height={HEIGHT}
+          />
+        );
+      })}
+    </>
+  );
+};

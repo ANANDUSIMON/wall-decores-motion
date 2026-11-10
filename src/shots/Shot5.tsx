@@ -1,26 +1,163 @@
 import React from 'react';
-import {AbsoluteFill,useCurrentFrame} from 'remotion';
-import {PostFX} from '../PostFX';
-import {Texture} from '../Texture';
-import {C,GRID,tween,type} from '../theme';
+import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
+import { palette, type, grid, ease, FONT_STACK } from '../theme';
+import { BrushStroke } from '../components/BrushStroke';
+import { MaskRise } from '../components/KineticText';
 
-export const Shot5: React.FC=()=>{
-  const f=useCurrentFrame(), x=GRID.margin,y=205,w=970,h=650;
-  const segments=[
-    {x1:x,y1:y,x2:x+w,y2:y}, {x1:x+w,y1:y,x2:x+w,y2:y+h},
-    {x1:x+w,y1:y+h,x2:x,y2:y+h}, {x1:x,y1:y+h,x2:x,y2:y},
-  ];
-  return <PostFX><AbsoluteFill style={{background:C.nearBlack,overflow:'hidden'}}>
-    <AbsoluteFill style={{left:x+12,top:y+12,width:w-24,height:h-24,overflow:'hidden',opacity:tween(f,34,53),transform:`scale(${tween(f,0,105,1,1.07)})`}}><Texture/></AbsoluteFill>
-    <svg viewBox="0 0 1920 1080" style={{position:'absolute',inset:0,width:'100%',height:'100%'}}>
-      {segments.map((s,i)=> <line key={i} {...s} stroke={C.gold} strokeWidth="3" pathLength="1" strokeDasharray="1" strokeDashoffset={1-tween(f,i*9,i*9+17)}/>)}
-      <line x1="1090" y1="526" x2="1190" y2="526" stroke={C.gold} strokeWidth="1" pathLength="1" strokeDasharray="1" strokeDashoffset={1-tween(f,48,65)}/>
-      <circle cx="1090" cy="526" r="4" fill={C.gold} opacity={tween(f,55,65)}/>
-    </svg>
-    <div style={{position:'absolute',left:1220,top:396,width:565}}>
-      {['IMPASTO','OIL ON CANVAS','BESPOKE SCALE'].map((label,i)=><div key={label} style={{...type.body,fontSize:i===0?43:27,fontWeight:i===0?800:500,color:i===0?C.gold:C.cream,
-        marginBottom:34,letterSpacing:i===0?'.05em':'.12em',opacity:tween(f,39+i*11,52+i*11),transform:`translateY(${tween(f,39+i*11,52+i*11,24,0)}px)`}}>{label}</div>)}
-    </div>
-    <div style={{position:'absolute',left:GRID.margin,bottom:110,...type.kicker,color:C.gold}}>MADE FOR YOUR SPACE</div>
-  </AbsoluteFill></PostFX>;
+/** SHOT 5 — THE TURN · 105 frames (3.5s)
+ *  The punch of the film. Hard cut to cream — a full inversion with no
+ *  transition, because the point is contrast. "NOT PRINTED." holds, cuts,
+ *  "PAINTED." lands, and the biggest, driest stroke in the film sweeps
+ *  underneath it with its bristle detail fully visible.
+ */
+export const Shot5: React.FC = () => {
+  const frame = useCurrentFrame();
+
+  const CUT = 36; // frame where NOT PRINTED becomes PAINTED
+  const second = frame >= CUT;
+
+  // the cream ground has a faint paper tone and a warm corner lift
+  return (
+    <AbsoluteFill style={{ backgroundColor: palette.cream }}>
+      {/* Paper tone, not blank white. A gentle lift top-left and a warm
+          gold cast bottom-right give the cream somewhere to go; without it
+          the inversion reads as a blown-out frame rather than a surface. */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: `radial-gradient(ellipse 80% 70% at 28% 26%,
+            rgba(255,252,246,0.55) 0%,
+            rgba(232,224,208,0) 58%),
+            radial-gradient(ellipse 70% 65% at 86% 88%,
+            rgba(184,146,78,0.30) 0%,
+            rgba(184,146,78,0) 72%),
+            linear-gradient(168deg,
+            rgba(0,0,0,0) 55%,
+            rgba(70,58,40,0.13) 100%)`,
+        }}
+      />
+
+      {/* paper grain */}
+      <svg
+        width="100%"
+        height="100%"
+        style={{ position: 'absolute', inset: 0, opacity: 0.1 }}
+      >
+        <filter id="paper5">
+          <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves={4} seed={9} />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#paper5)" style={{ mixBlendMode: 'multiply' }} />
+      </svg>
+
+      {!second ? (
+        <div
+          style={{
+            position: 'absolute',
+            left: grid.margin,
+            top: grid.height / 2 - 120,
+          }}
+        >
+          <MaskRise start={2} duration={16} color={palette.ink} style={{ ...type.display }}>
+            NOT
+          </MaskRise>
+          <MaskRise start={7} duration={16} color={palette.ink} style={{ ...type.display }}>
+            PRINTED.
+          </MaskRise>
+        </div>
+      ) : (
+        <>
+          <div
+            style={{
+              position: 'absolute',
+              left: grid.margin,
+              top: grid.height / 2 - 120,
+            }}
+          >
+            <MaskRise
+              start={CUT + 1}
+              duration={14}
+              color={palette.ink}
+              style={{ ...type.display }}
+            >
+              PAINTED.
+            </MaskRise>
+          </div>
+
+          {/* the hero stroke — biggest, driest, most textured in the film */}
+          {/* Two passes of the same stroke: a dense loaded base, then a drier
+              pass on top. One pass alone spread 80 bristles over 150px and
+              came out thin and pale — a real loaded brush lays down solid
+              colour first and the dry skip shows at the edges. */}
+          <BrushStroke
+            from={[grid.margin - 20, grid.height / 2 + 108]}
+            to={[1480, grid.height / 2 + 132]}
+            color={palette.amberDeep}
+            thickness={132}
+            bristles={80}
+            dryness={0.22}
+            revealStart={CUT + 8}
+            revealDuration={26}
+            bow={-22}
+            seed={777}
+            opacity={1}
+          />
+          <BrushStroke
+            from={[grid.margin - 14, grid.height / 2 + 104]}
+            to={[1476, grid.height / 2 + 128]}
+            color={palette.amber}
+            thickness={150}
+            bristles={80}
+            dryness={0.64}
+            revealStart={CUT + 8}
+            revealDuration={26}
+            bow={-22}
+            seed={913}
+            opacity={0.95}
+          />
+
+          {/* rose square punctuating the end of the stroke */}
+          <div
+            style={{
+              position: 'absolute',
+              left: 1512,
+              top: grid.height / 2 + 96,
+              width: 44,
+              height: 44,
+              background: palette.rose,
+              transform: `scale(${interpolate(
+                frame,
+                [CUT + 30, CUT + 40],
+                [0, 1],
+                { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: ease.entrance }
+              )}) rotate(${interpolate(frame, [CUT + 30, CUT + 46], [-20, 0], {
+                extrapolateLeft: 'clamp',
+                extrapolateRight: 'clamp',
+                easing: ease.entrance,
+              })}deg)`,
+              boxShadow: `0 10px 30px rgba(0,0,0,0.2)`,
+            }}
+          />
+        </>
+      )}
+
+      <div
+        style={{
+          position: 'absolute',
+          left: grid.margin,
+          bottom: grid.margin,
+          ...type.kicker,
+          fontFamily: FONT_STACK,
+          color: '#6b6256',
+          opacity: interpolate(frame, [CUT + 40, CUT + 54], [0, 1], {
+            extrapolateLeft: 'clamp',
+            extrapolateRight: 'clamp',
+          }),
+        }}
+      >
+        Every piece mixed, laid and finished by hand
+      </div>
+    </AbsoluteFill>
+  );
 };

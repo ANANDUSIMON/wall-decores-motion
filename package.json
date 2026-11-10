@@ -1,0 +1,34 @@
+{
+  "name": "wall-decores-motion",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render BrandFilm out/BrandFilm.mp4",
+    "preview": "remotion studio"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ANANDUSIMON/wall-decores-motion.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ANANDUSIMON/wall-decores-motion/issues"
+  },
+  "homepage": "https://github.com/ANANDUSIMON/wall-decores-motion#readme",
+  "dependencies": {
+    "@remotion/cli": "4.0.542",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.542"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}

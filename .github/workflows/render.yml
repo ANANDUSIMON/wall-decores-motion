@@ -1,0 +1,43 @@
+name: Render
+on:
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scene: [Shot1, Shot2, Shot3, Shot4, Shot5, Shot6]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx remotion render ${{ matrix.scene }} out/${{ matrix.scene }}.mp4 --codec h264 --crf 18
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scene-${{ matrix.scene }}
+          path: out/${{ matrix.scene }}.mp4
+
+  concat:
+    needs: render
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: scenes
+      - run: |
+          printf "file '%s'\n" \
+            scenes/scene-Shot1/Shot1.mp4 \
+            scenes/scene-Shot2/Shot2.mp4 \
+            scenes/scene-Shot3/Shot3.mp4 \
+            scenes/scene-Shot4/Shot4.mp4 \
+            scenes/scene-Shot5/Shot5.mp4 \
+            scenes/scene-Shot6/Shot6.mp4 \
+            > list.txt
+          ffmpeg -y -f concat -safe 0 -i list.txt -c copy out.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: final-video
+          path: out.mp4

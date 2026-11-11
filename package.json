@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "remotion studio",
-    "build": "remotion render BrandFilm out/BrandFilm.mp4",
-    "preview": "remotion studio"
+    "build": "remotion render src/index.ts GalleryFilm out/gallery-film.mp4 --codec h264 --crf 18",
+    "preview": "remotion studio",
+    "manifest": "node scripts/build-manifest.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",

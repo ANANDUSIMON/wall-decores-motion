@@ -1,7 +1,7 @@
 import { Config } from '@remotion/cli/config';
 
 Config.setVideoImageFormat('jpeg');
-Config.setCodec('h264');
-Config.setCrf(18);
-Config.setPixelFormat('yuv420p');
-Config.setChromiumOpenGlRenderer('angle');
+Config.setOverwriteOutput(true);
+// Paintings are photographic — chroma subsampling at 4:2:0 is fine and keeps
+// the file small, but we hold quality high because texture is the whole point.
+Config.setJpegQuality(95);

@@ -1,17 +1,13 @@
-name: Render Brand Film
+name: Render Gallery Film
 
 on:
   workflow_dispatch:
-    inputs:
-      composition:
-        description: "Render a single composition instead of the full film (leave blank for all shots)"
-        required: false
-        default: ""
 
 jobs:
   # ---------------------------------------------------------------------
-  # One machine per shot. Public-repo runners give 4 CPU / 16 GB each,
-  # free and unmetered, so six shots cost the same wall-clock time as one.
+  # One machine per shot. Public-repo runners give 4 CPU / 16 GB each, free
+  # and unmetered, so six shots cost the wall-clock time of the longest one
+  # instead of the sum of all six.
   # ---------------------------------------------------------------------
   render-shot:
     name: Render ${{ matrix.shot.id }}
@@ -20,12 +16,12 @@ jobs:
       fail-fast: false
       matrix:
         shot:
-          - { n: "01", id: "Shot1" }
-          - { n: "02", id: "Shot2" }
-          - { n: "03", id: "Shot3" }
-          - { n: "04", id: "Shot4" }
-          - { n: "05", id: "Shot5" }
-          - { n: "06", id: "Shot6" }
+          - { n: '01', id: 'Shot1' }
+          - { n: '02', id: 'Shot2' }
+          - { n: '03', id: 'Shot3' }
+          - { n: '04', id: 'Shot4' }
+          - { n: '05', id: 'Shot5' }
+          - { n: '06', id: 'Shot6' }
     steps:
       - uses: actions/checkout@v4
 
@@ -37,14 +33,19 @@ jobs:
       - name: Install dependencies
         run: npm ci || npm install
 
+      # Rebuilt here rather than trusting the committed copy, so adding a
+      # painting and forgetting to run `npm run manifest` locally cannot
+      # silently render the previous set.
+      - name: Rebuild art manifest
+        run: npm run manifest
+
       - name: Install Chrome for Remotion
         run: npx remotion browser ensure
 
       # --muted matters more than it looks. Without it Remotion attaches a
       # silent AAC track that runs ~0.056s longer than the video, and six of
-      # those concatenated drift by a third of a second and throw timestamp
-      # warnings. Video-only files concat cleanly; music is laid over the
-      # finished film in one pass at the end.
+      # those concatenated drift by a third of a second. Video-only files
+      # concat cleanly; music goes on the finished film in one pass.
       - name: Render ${{ matrix.shot.id }}
         run: |
           mkdir -p out
@@ -52,19 +53,16 @@ jobs:
             out/${{ matrix.shot.n }}-${{ matrix.shot.id }}.mp4 \
             --codec h264 \
             --crf 18 \
-            --x264-preset veryfast \
+            --x264-preset slow \
             --pixel-format yuv420p \
             --muted \
             --log verbose
-
-      - name: Install ffmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Verify frame count and duration
         run: |
           ffprobe -hide_banner -v error \
             -select_streams v:0 \
-            -show_entries stream=nb_frames,width,height,r_frame_rate \
+            -show_entries stream=nb_frames,width,height,r_frame_rate,codec_name \
             -show_entries format=duration \
             -of default=noprint_wrappers=1 \
             out/${{ matrix.shot.n }}-${{ matrix.shot.id }}.mp4
@@ -78,23 +76,24 @@ jobs:
   # ---------------------------------------------------------------------
   # Join the six files. `-c copy` stitches the existing streams without
   # re-encoding, so the final film is bit-identical to what each machine
-  # produced. Re-encoding here would cost a generation of quality for
-  # nothing.
+  # produced.
   # ---------------------------------------------------------------------
   concat:
     name: Join shots into final film
     needs: render-shot
     runs-on: ubuntu-latest
     steps:
+      # The runner image does not always carry ffmpeg, and the concat step
+      # fails late and confusingly when it is missing.
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       - name: Download all shots
         uses: actions/download-artifact@v4
         with:
           path: shots
           pattern: shot-*
           merge-multiple: true
-
-      - name: Install ffmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Build concat list in shot order
         run: |
@@ -110,7 +109,7 @@ jobs:
         run: |
           ffmpeg -hide_banner -f concat -safe 0 -i list.txt \
             -c copy -movflags +faststart \
-            out/wall-decores-brand-film.mp4
+            out/wall-decores-gallery-film.mp4
 
       - name: Report
         run: |
@@ -118,10 +117,10 @@ jobs:
             -show_entries format=duration,size \
             -show_entries stream=width,height,r_frame_rate,codec_name \
             -of default=noprint_wrappers=1 \
-            out/wall-decores-brand-film.mp4
+            out/wall-decores-gallery-film.mp4
 
       - uses: actions/upload-artifact@v4
         with:
           name: final-video
-          path: out/wall-decores-brand-film.mp4
+          path: out/wall-decores-gallery-film.mp4
           retention-days: 30

@@ -1,137 +1,143 @@
 import React from 'react';
-import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
+import {
+  AbsoluteFill,
+  useCurrentFrame,
+  useVideoConfig,
+  interpolate,
+  spring,
+} from 'remotion';
 import { palette, type, grid, ease, FONT_STACK } from '../theme';
-import { BrushStroke } from '../components/BrushStroke';
-import { GrowLine } from '../components/KineticText';
+import { Wall } from '../components/Wall';
+import { Camera, Layer } from '../components/Camera';
+import { GalleryCanvas, type Pose } from '../components/GalleryCanvas';
+import { MaskRise } from '../components/KineticText';
 
-/** SHOT 1 — COLD OPEN · 90 frames (3.0s)
- *  Ink. A gold hairline opens the frame, a loaded brush swipes across it and
- *  wipes in a warm field, three light bars rake past. Restraint on purpose:
- *  the film has 23 seconds to get loud, this is the inhale.
+/**
+ * SHOT 1 — ARRIVAL · 105 frames (3.5s)
+ *
+ * An empty wall, and one painting arriving on it. Holding on emptiness for
+ * the first second is what buys the arrival its weight; fill the frame
+ * immediately and there is nothing for the move to land against.
  */
 export const Shot1: React.FC = () => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
 
-  const swipeReveal = 16;
-
-  // the warm field wiped in by the brush
-  const fieldW = interpolate(frame, [18, 44], [0, 1], {
-    extrapolateLeft: 'clamp',
+  // Slow push in. Barely perceptible, which is the point — it keeps the
+  // frame alive without ever announcing itself.
+  const camScale = interpolate(frame, [0, 105], [1.0, 1.035], {
     extrapolateRight: 'clamp',
-    easing: ease.entrance,
+    easing: ease.drift,
+  });
+  const camX = interpolate(frame, [0, 105], [0, -22], {
+    extrapolateRight: 'clamp',
+    easing: ease.drift,
   });
 
-  const kickerUp = interpolate(frame, [48, 64], [26, 0], {
+  /** The painting slides in from the left and settles against the wall. */
+  const hero: (f: number) => Pose = (f) => {
+    const p = spring({
+      frame: f - 12,
+      fps,
+      config: { damping: 19, mass: 1.1, stiffness: 72, overshootClamping: false },
+      durationInFrames: 46,
+    });
+    return {
+      x: interpolate(p, [0, 1], [-300, 660]),
+      y: 496,
+      scale: interpolate(p, [0, 1], [0.95, 1]),
+      rotate: interpolate(p, [0, 1], [-1.4, 0]),
+      lift: 1 - p,
+      opacity: interpolate(f, [12, 20], [0, 1], {
+        extrapolateLeft: 'clamp',
+        extrapolateRight: 'clamp',
+      }),
+    };
+  };
+
+  const rule = interpolate(frame, [4, 34], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
-    easing: ease.entrance,
-  });
-  const kickerOp = interpolate(frame, [48, 64], [0, 1], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
+    easing: ease.cinematic,
   });
 
-  // slow 1.0 -> 1.04 breath on the whole shot
-  const breathe = interpolate(frame, [0, 90], [1, 1.04], {
-    easing: ease.sweep,
+  const kickerOp = interpolate(frame, [62, 78], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
   });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: palette.ink }}>
-      <AbsoluteFill style={{ transform: `scale(${breathe})` }}>
-        {/* warm field, revealed behind the swipe */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: `linear-gradient(118deg, ${palette.inkLift} 0%, #231a12 46%, ${palette.ink} 100%)`,
-            clipPath: `polygon(0 0, ${fieldW * 118}% 0, ${
-              fieldW * 118 - 34
-            }% 100%, 0 100%)`,
-          }}
-        />
+    <AbsoluteFill>
+      <Camera x={camX} scale={camScale}>
+        <Layer depth={0}>
+          <Wall lightX={0.38} lightY={0.4} lightStrength={1} />
+        </Layer>
 
-        {/* light bars raking across */}
-        {[0, 1, 2].map((i) => {
-          const x = interpolate(
-            frame,
-            [10 + i * 7, 58 + i * 7],
-            [-400, 2300],
-            { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: ease.cinematic }
-          );
-          return (
+        {/* the gold rule that sets the eye level for the whole film */}
+        <Layer depth={0.35}>
+          <div
+            style={{
+              position: 'absolute',
+              left: grid.margin,
+              top: 566,
+              width: (grid.usable + 180) * rule,
+              height: 1,
+              backgroundColor: palette.gold,
+              opacity: 0.4,
+            }}
+          />
+        </Layer>
+
+        {/* Deep green ground with hot pink — the piece with the most contrast
+            against a warm white wall. A pale painting on a pale wall simply
+            disappears, however well it is lit. */}
+        <Layer depth={1}>
+          <GalleryCanvas art="a1-heliconia-pink" h={620} at={hero} side="right" />
+        </Layer>
+
+        {/* editorial block on the right, well clear of the painting */}
+        <Layer depth={1.25}>
+          <div style={{ position: 'absolute', left: 1180, top: 382 }}>
+            <MaskRise start={48} duration={24} style={{ ...type.heading }}>
+              Handmade
+            </MaskRise>
+            <MaskRise
+              start={56}
+              duration={24}
+              color={palette.gold}
+              style={{ ...type.heading }}
+            >
+              wall art
+            </MaskRise>
             <div
-              key={i}
               style={{
-                position: 'absolute',
-                left: x,
-                top: -200,
-                width: 2 + i * 1.5,
-                height: 1500,
-                background: palette.goldBright,
-                opacity: 0.1 + i * 0.05,
-                transform: 'rotate(23deg)',
-                filter: `blur(${2 + i * 3}px)`,
-                boxShadow: `0 0 40px ${palette.gold}`,
+                marginTop: 28,
+                width: 300,
+                ...type.body,
+                fontFamily: FONT_STACK,
+                color: palette.graphite,
+                opacity: kickerOp,
               }}
-            />
-          );
-        })}
+            >
+              Original canvases, made one at a time for the wall they are going on.
+            </div>
+          </div>
+        </Layer>
+      </Camera>
 
-        {/* the opening hairline */}
-        <GrowLine
-          x={grid.width / 2}
-          y={grid.height / 2}
-          width={grid.width - grid.margin * 2}
-          color={palette.gold}
-          start={2}
-          duration={12}
-          thickness={1}
-        />
-
-        {/* the swipe */}
-        <BrushStroke
-          from={[160, 300]}
-          to={[1800, 860]}
-          color={palette.gold}
-          thickness={78}
-          bristles={74}
-          dryness={0.3}
-          revealStart={16}
-          revealDuration={swipeReveal}
-          bow={30}
-          seed={3}
-          opacity={0.92}
-        />
-
-        {/* vertical rule dropping to the 1/3 line */}
-        <GrowLine
-          x={grid.col(4)}
-          y={0}
-          width={grid.height * 0.34}
-          color={palette.gold}
-          start={30}
-          duration={14}
-          thickness={1}
-          vertical
-        />
-
-        {/* kicker */}
-        <div
-          style={{
-            position: 'absolute',
-            left: grid.margin,
-            bottom: grid.margin,
-            ...type.kicker,
-            fontFamily: FONT_STACK,
-            color: palette.creamDim,
-            transform: `translateY(${kickerUp}px)`,
-            opacity: kickerOp,
-          }}
-        >
-          Angamaly · Kerala
-        </div>
-      </AbsoluteFill>
+      <div
+        style={{
+          position: 'absolute',
+          left: grid.margin,
+          bottom: 72,
+          ...type.kicker,
+          fontFamily: FONT_STACK,
+          color: palette.muted,
+          opacity: kickerOp,
+        }}
+      >
+        Angamaly · Kerala
+      </div>
     </AbsoluteFill>
   );
 };

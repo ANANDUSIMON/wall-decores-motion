@@ -1,82 +1,51 @@
 import React from 'react';
-import { useCurrentFrame, AbsoluteFill } from 'remotion';
-
-type Props = {
-  children: React.ReactNode;
-  /** frames where a hard cut lands — gets a 1px colour split */
-  cutFrames?: number[];
-  /** 0 to 1 — how much glow spills off bright areas */
-  bloom?: number;
-  grain?: number;
-  vignette?: number;
-};
+import { AbsoluteFill, useCurrentFrame } from 'remotion';
 
 /**
- * Final grade and film texture.
+ * The final grade.
  *
- * Four passes, in the order a colourist would apply them:
- *   1. bloom    — bright areas spill light, the single biggest contributor
- *                 to "premium" rather than "flat web graphic"
- *   2. grade    — slight contrast lift and saturation push
- *   3. vignette — pulls the eye to centre frame
- *   4. grain    — regenerated every frame so it never looks like a static
- *                 overlay sitting on top of the picture
+ * A light-background film needs the opposite treatment to a dark one. On ink
+ * you add bloom, because light spilling from bright elements is what sells
+ * it. On a white wall bloom is fatal — it lifts the whole frame, the wall
+ * goes milky, and every painting loses its edge. So there is no bloom here.
+ *
+ * What a light frame needs instead is depth: a touch more contrast so the
+ * near-whites separate, a corner fall so the frame has edges, and grain so
+ * the flat areas have a surface. Restraint is the whole job — the paintings
+ * are the only thing in frame allowed to be loud.
  */
-export const PostFX: React.FC<Props> = ({
-  children,
-  cutFrames = [],
-  bloom = 0.42,
-  grain = 0.05,
-  vignette = 0.45,
-}) => {
+export const PostFX: React.FC<{
+  children: React.ReactNode;
+  grain?: number;
+  vignette?: number;
+  /** warmth of the print, 0 neutral */
+  warmth?: number;
+  /** local frames where a cut lands — a 2-frame lens artefact fires there */
+  cutFrames?: number[];
+}> = ({ children, grain = 0.045, vignette = 0.3, warmth = 0.5, cutFrames = [] }) => {
   const frame = useCurrentFrame();
-
-  // Chromatic aberration only on the frame of a hard cut and the one after.
-  const nearCut = cutFrames.some((c) => frame >= c && frame < c + 2);
-  const ab = nearCut ? 1.4 : 0;
+  const atCut = cutFrames.some((c) => frame >= c && frame < c + 2);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#000' }}>
-      {/* base */}
+    <AbsoluteFill style={{ overflow: 'hidden' }}>
       <AbsoluteFill
         style={{
-          filter: `contrast(1.06) saturate(1.12) brightness(1.01)`,
+          // Gentle. Anything stronger and the wall starts to posterise in
+          // the near-whites, which is very visible after h264.
+          filter: 'contrast(1.045) saturate(1.07) brightness(1.004)',
         }}
       >
         {children}
       </AbsoluteFill>
 
-      {/*
-        Bloom — thresholded, not a blanket glow.
-
-        The `contrast(2.9) brightness(0.55)` pass crushes everything below
-        roughly 70% luminance to black BEFORE the blur, so only genuinely
-        bright elements spill light. Without the threshold the whole frame
-        lifts and light shots go milky — which is the single most common way
-        a code-rendered film gives itself away.
-      */}
-      {bloom > 0 && (
-        <AbsoluteFill
-          style={{
-            mixBlendMode: 'screen',
-            opacity: bloom,
-            filter:
-              'brightness(0.55) contrast(2.9) blur(22px) brightness(1.45) saturate(1.25)',
-            pointerEvents: 'none',
-          }}
-        >
-          {children}
-        </AbsoluteFill>
-      )}
-
-      {/* chromatic aberration on cuts */}
-      {ab > 0 && (
+      {/* a cut lands harder with two frames of lens error */}
+      {atCut && (
         <>
           <AbsoluteFill
             style={{
+              transform: 'translateX(-1.2px)',
               mixBlendMode: 'screen',
-              opacity: 0.4,
-              transform: `translateX(${ab}px)`,
+              opacity: 0.3,
               filter: 'url(#fx-red)',
             }}
           >
@@ -84,10 +53,10 @@ export const PostFX: React.FC<Props> = ({
           </AbsoluteFill>
           <AbsoluteFill
             style={{
+              transform: 'translateX(1.2px)',
               mixBlendMode: 'screen',
-              opacity: 0.4,
-              transform: `translateX(${-ab}px)`,
-              filter: 'url(#fx-cyan)',
+              opacity: 0.3,
+              filter: 'url(#fx-blue)',
             }}
           >
             {children}
@@ -95,30 +64,50 @@ export const PostFX: React.FC<Props> = ({
         </>
       )}
 
-      {/* vignette */}
+      {/* warm print bias — a hair of amber in the whites */}
+      {warmth > 0 && (
+        <AbsoluteFill
+          style={{
+            background:
+              'linear-gradient(170deg, rgba(255,236,206,0.5) 0%, rgba(255,246,232,0.22) 55%, rgba(236,226,210,0.4) 100%)',
+            mixBlendMode: 'multiply',
+            opacity: warmth * 0.22,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
+      {/* corner fall — on white this has to be far softer than on ink or it
+          reads as a vignette filter rather than a lens */}
       <AbsoluteFill
         style={{
-          background: `radial-gradient(ellipse 72% 68% at 50% 48%,
-            rgba(0,0,0,0) 38%,
-            rgba(0,0,0,${vignette * 0.4}) 74%,
-            rgba(0,0,0,${vignette}) 100%)`,
+          background: `radial-gradient(ellipse 78% 72% at 50% 46%,
+            rgba(42,33,24,0) 52%,
+            rgba(42,33,24,0.1) 78%,
+            rgba(42,33,24,0.26) 100%)`,
+          opacity: vignette,
           pointerEvents: 'none',
         }}
       />
 
-      {/* film grain — new noise field every frame */}
-      <AbsoluteFill
-        style={{
-          opacity: grain,
-          mixBlendMode: 'overlay',
-          pointerEvents: 'none',
-        }}
-      >
-        <svg width="100%" height="100%">
+      {/* grain, regenerated every frame so it moves like film rather than
+          sitting on the picture like a texture */}
+      {grain > 0 && (
+        <svg
+          width="100%"
+          height="100%"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            opacity: grain,
+            mixBlendMode: 'overlay',
+            pointerEvents: 'none',
+          }}
+        >
           <filter id={`grain-${frame}`}>
             <feTurbulence
               type="fractalNoise"
-              baseFrequency="0.82"
+              baseFrequency="0.85"
               numOctaves={2}
               seed={frame * 3 + 11}
             />
@@ -126,20 +115,20 @@ export const PostFX: React.FC<Props> = ({
           </filter>
           <rect width="100%" height="100%" filter={`url(#grain-${frame})`} />
         </svg>
-      </AbsoluteFill>
+      )}
 
-      {/* colour-channel filters used by the aberration pass */}
-      <svg width={0} height={0} style={{ position: 'absolute' }}>
+      {/* channel-separation filters used by the cut artefact above */}
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
         <filter id="fx-red">
           <feColorMatrix
             type="matrix"
             values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"
           />
         </filter>
-        <filter id="fx-cyan">
+        <filter id="fx-blue">
           <feColorMatrix
             type="matrix"
-            values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"
+            values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"
           />
         </filter>
       </svg>

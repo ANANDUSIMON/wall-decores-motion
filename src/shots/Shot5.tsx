@@ -1,162 +1,123 @@
 import React from 'react';
-import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
+import {
+  AbsoluteFill,
+  useCurrentFrame,
+  useVideoConfig,
+  interpolate,
+  spring,
+} from 'remotion';
 import { palette, type, grid, ease, FONT_STACK } from '../theme';
-import { BrushStroke } from '../components/BrushStroke';
-import { MaskRise } from '../components/KineticText';
+import { Wall } from '../components/Wall';
+import { Camera, Layer } from '../components/Camera';
+import { GalleryCanvas, type Pose } from '../components/GalleryCanvas';
+import { MaskRise, Dimension } from '../components/KineticText';
 
-/** SHOT 5 — THE TURN · 105 frames (3.5s)
- *  The punch of the film. Hard cut to cream — a full inversion with no
- *  transition, because the point is contrast. "NOT PRINTED." holds, cuts,
- *  "PAINTED." lands, and the biggest, driest stroke in the film sweeps
- *  underneath it with its bristle detail fully visible.
+/**
+ * SHOT 5 — MADE TO SIZE · 120 frames (4.0s)
+ *
+ * The commercial argument, made visually. Measurement brackets draw
+ * themselves around a single piece — the drawing-office gesture that says
+ * this is manufactured to a wall rather than picked off a shelf.
+ *
+ * It works because it is restrained: thin grey lines, small type, one
+ * painting. The moment it gets decorative it stops reading as a spec and
+ * starts reading as an infographic.
  */
 export const Shot5: React.FC = () => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
 
-  const CUT = 36; // frame where NOT PRINTED becomes PAINTED
-  const second = frame >= CUT;
+  const camScale = interpolate(frame, [0, 120], [1.0, 1.05], {
+    extrapolateRight: 'clamp',
+    easing: ease.drift,
+  });
 
-  // the cream ground has a faint paper tone and a warm corner lift
+  const W = 762; // c3-strata-rust at h 506, aspect 1.506
+  const H = 506;
+  const CX = 952;
+  const CY = 476;
+
+  const hero: (f: number) => Pose = (f) => {
+    const p = spring({
+      frame: f - 2,
+      fps,
+      config: { damping: 18, mass: 0.9, stiffness: 100 },
+      durationInFrames: 30,
+    });
+    return {
+      x: CX,
+      y: CY,
+      scale: interpolate(p, [0, 1], [0.94, 1]),
+      lift: 1 - p,
+      opacity: interpolate(f, [2, 9], [0, 1], {
+        extrapolateLeft: 'clamp',
+        extrapolateRight: 'clamp',
+      }),
+    };
+  };
+
   return (
-    <AbsoluteFill style={{ backgroundColor: palette.cream }}>
-      {/* Paper tone, not blank white. A gentle lift top-left and a warm
-          gold cast bottom-right give the cream somewhere to go; without it
-          the inversion reads as a blown-out frame rather than a surface. */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: `radial-gradient(ellipse 80% 70% at 28% 26%,
-            rgba(255,252,246,0.55) 0%,
-            rgba(232,224,208,0) 58%),
-            radial-gradient(ellipse 70% 65% at 86% 88%,
-            rgba(184,146,78,0.30) 0%,
-            rgba(184,146,78,0) 72%),
-            linear-gradient(168deg,
-            rgba(0,0,0,0) 55%,
-            rgba(70,58,40,0.13) 100%)`,
-        }}
-      />
+    <AbsoluteFill>
+      <Camera scale={camScale}>
+        <Layer depth={0}>
+          <Wall lightX={0.42} lightY={0.4} lightStrength={0.95} />
+        </Layer>
 
-      {/* paper grain */}
-      <svg
-        width="100%"
-        height="100%"
-        style={{ position: 'absolute', inset: 0, opacity: 0.1 }}
-      >
-        <filter id="paper5">
-          <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves={4} seed={9} />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#paper5)" style={{ mixBlendMode: 'multiply' }} />
-      </svg>
+        <Layer depth={1}>
+          <GalleryCanvas art="c3-strata-rust" h={H} at={hero} side="right" />
 
-      {!second ? (
-        <div
-          style={{
-            position: 'absolute',
-            left: grid.margin,
-            top: grid.height / 2 - 120,
-          }}
+          {/* the brackets, drawn after the piece has settled */}
+          <Dimension
+            x={CX}
+            y={CY - H / 2 - 46}
+            length={W}
+            label="1800 mm"
+            start={38}
+            duration={22}
+          />
+          <Dimension
+            x={CX + W / 2 + 46}
+            y={CY}
+            length={H}
+            label="1200 mm"
+            vertical
+            start={50}
+            duration={22}
+          />
+        </Layer>
+      </Camera>
+
+      <div style={{ position: 'absolute', left: grid.margin, bottom: 206 }}>
+        <MaskRise start={62} duration={22} style={{ ...type.heading }}>
+          MADE TO
+        </MaskRise>
+        <MaskRise
+          start={70}
+          duration={22}
+          color={palette.gold}
+          style={{ ...type.heading }}
         >
-          <MaskRise start={2} duration={16} color={palette.ink} style={{ ...type.display }}>
-            NOT
-          </MaskRise>
-          <MaskRise start={7} duration={16} color={palette.ink} style={{ ...type.display }}>
-            PRINTED.
-          </MaskRise>
-        </div>
-      ) : (
-        <>
-          <div
-            style={{
-              position: 'absolute',
-              left: grid.margin,
-              top: grid.height / 2 - 120,
-            }}
-          >
-            <MaskRise
-              start={CUT + 1}
-              duration={14}
-              color={palette.ink}
-              style={{ ...type.display }}
-            >
-              PAINTED.
-            </MaskRise>
-          </div>
-
-          {/* the hero stroke — biggest, driest, most textured in the film */}
-          {/* Two passes of the same stroke: a dense loaded base, then a drier
-              pass on top. One pass alone spread 80 bristles over 150px and
-              came out thin and pale — a real loaded brush lays down solid
-              colour first and the dry skip shows at the edges. */}
-          <BrushStroke
-            from={[grid.margin - 20, grid.height / 2 + 108]}
-            to={[1480, grid.height / 2 + 132]}
-            color={palette.amberDeep}
-            thickness={132}
-            bristles={80}
-            dryness={0.22}
-            revealStart={CUT + 8}
-            revealDuration={26}
-            bow={-22}
-            seed={777}
-            opacity={1}
-          />
-          <BrushStroke
-            from={[grid.margin - 14, grid.height / 2 + 104]}
-            to={[1476, grid.height / 2 + 128]}
-            color={palette.amber}
-            thickness={150}
-            bristles={80}
-            dryness={0.64}
-            revealStart={CUT + 8}
-            revealDuration={26}
-            bow={-22}
-            seed={913}
-            opacity={0.95}
-          />
-
-          {/* rose square punctuating the end of the stroke */}
-          <div
-            style={{
-              position: 'absolute',
-              left: 1512,
-              top: grid.height / 2 + 96,
-              width: 44,
-              height: 44,
-              background: palette.rose,
-              transform: `scale(${interpolate(
-                frame,
-                [CUT + 30, CUT + 40],
-                [0, 1],
-                { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: ease.entrance }
-              )}) rotate(${interpolate(frame, [CUT + 30, CUT + 46], [-20, 0], {
-                extrapolateLeft: 'clamp',
-                extrapolateRight: 'clamp',
-                easing: ease.entrance,
-              })}deg)`,
-              boxShadow: `0 10px 30px rgba(0,0,0,0.2)`,
-            }}
-          />
-        </>
-      )}
+          YOUR WALL
+        </MaskRise>
+      </div>
 
       <div
         style={{
           position: 'absolute',
           left: grid.margin,
-          bottom: grid.margin,
-          ...type.kicker,
+          bottom: 72,
+          width: 420,
+          ...type.body,
+          fontSize: 19,
           fontFamily: FONT_STACK,
-          color: '#6b6256',
-          opacity: interpolate(frame, [CUT + 40, CUT + 54], [0, 1], {
+          color: palette.graphite,
+          opacity: interpolate(frame, [88, 104], [0, 1], {
             extrapolateLeft: 'clamp',
             extrapolateRight: 'clamp',
           }),
         }}
       >
-        Every piece mixed, laid and finished by hand
+        Any size, any palette. Specified with your designer, painted to order.
       </div>
     </AbsoluteFill>
   );

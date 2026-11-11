@@ -1,107 +1,104 @@
 import { Easing } from 'remotion';
 
-/**
- * Wall Decores Artisan Collectives — Film Design System
- * Vibrant premium: deep ink ground, saturated accents, generous negative space.
- * Vibrancy comes from saturation + bloom, never from colour count.
- * Rule: maximum TWO accent colours visible in any single shot.
- */
-
-export const palette = {
-  ink: '#0b0d0c',
-  inkSoft: '#15191a',
-  inkLift: '#1e2423',
-  cream: '#f2ece0',
-  creamDim: '#d9d1c2',
-  gold: '#d4b26a',
-  goldBright: '#eccf90',
-  emerald: '#16b584',
-  emeraldDeep: '#0d7a58',
-  amber: '#e8622f',
-  amberDeep: '#b4441c',
-  rose: '#d4537e',
-  teal: '#2a9d9b',
-} as const;
-
-export const ease = {
-  /** explosive start, long luxurious settle — all entrances */
-  entrance: Easing.bezier(0.16, 1, 0.3, 1),
-  /** slow start, snap out — all exits */
-  exit: Easing.bezier(0.7, 0, 0.84, 0),
-  /** general cinematic move */
-  cinematic: Easing.bezier(0.22, 1, 0.36, 1),
-  /** weighted fall */
-  drop: Easing.bezier(0.33, 1, 0.68, 1),
-  /** linear, only for continuous sweeps */
-  sweep: Easing.linear,
-} as const;
-
-export const type = {
-  display: {
-    fontSize: 184,
-    fontWeight: 900,
-    lineHeight: 0.84,
-    letterSpacing: '-0.035em',
-  },
-  displaySm: {
-    fontSize: 120,
-    fontWeight: 900,
-    lineHeight: 0.86,
-    letterSpacing: '-0.03em',
-  },
-  heading: {
-    fontSize: 64,
-    fontWeight: 800,
-    lineHeight: 1.0,
-    letterSpacing: '-0.02em',
-  },
-  body: {
-    fontSize: 24,
-    fontWeight: 500,
-    lineHeight: 1.4,
-    letterSpacing: '0em',
-  },
-  kicker: {
-    fontSize: 12,
-    fontWeight: 600,
-    letterSpacing: '0.42em',
-    textTransform: 'uppercase' as const,
-  },
-  annotation: {
-    fontSize: 14,
-    fontWeight: 500,
-    letterSpacing: '0.18em',
-    textTransform: 'uppercase' as const,
-  },
-} as const;
-
-export const FONT_STACK =
-  '"Helvetica Neue", Inter, "Archivo", system-ui, -apple-system, sans-serif';
-
-/** 12-column grid, 120px side margins at 1920 */
-export const grid = {
-  width: 1920,
-  height: 1080,
-  margin: 120,
-  columns: 12,
-  get usable() {
-    return this.width - this.margin * 2;
-  },
-  get gutter() {
-    return 24;
-  },
-  /** left edge of column n (0-indexed) */
-  col(n: number) {
-    const colWidth = (this.usable - this.gutter * (this.columns - 1)) / this.columns;
-    return this.margin + n * (colWidth + this.gutter);
-  },
-  /** width spanning n columns */
-  span(n: number) {
-    const colWidth = (this.usable - this.gutter * (this.columns - 1)) / this.columns;
-    return colWidth * n + this.gutter * (n - 1);
-  },
-} as const;
-
 export const FPS = 30;
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
+
+/**
+ * A gallery wall is never pure white. Pure #fff clips in camera, kills every
+ * highlight the paintings have, and makes the whole thing feel like a slide
+ * deck. These are the values a white wall actually photographs as: warm,
+ * slightly grey, with a lift where the light lands and a fall into the
+ * corners.
+ */
+export const palette = {
+  wall: '#f3efe9',
+  wallLift: '#fbf9f6',
+  wallShade: '#e2dcd2',
+  wallDeep: '#d3ccc0',
+
+  /** Never pure black on white — it vibrates. Warm near-black instead. */
+  ink: '#17120d',
+  graphite: '#514a41',
+  muted: '#8e857a',
+  hairline: '#cdc5b8',
+
+  /** A paler gold vanishes on white. This one holds. */
+  gold: '#a37c37',
+  goldSoft: '#c29a52',
+
+  shadow: '#2a2118',
+} as const;
+
+export const ease = {
+  /** Long tail — the move that makes things feel heavy and expensive. */
+  cinematic: Easing.bezier(0.16, 1, 0.3, 1),
+  /** Slightly firmer, for type. */
+  entrance: Easing.bezier(0.22, 1, 0.36, 1),
+  exit: Easing.bezier(0.7, 0, 0.84, 0),
+  /** Near-linear with a soft start, for camera drift that should feel
+   *  mechanical rather than animated. */
+  drift: Easing.bezier(0.4, 0, 0.6, 1),
+  linear: Easing.linear,
+} as const;
+
+export const FONT_STACK =
+  '"Helvetica Neue", Helvetica, "Inter", "Segoe UI", Arial, sans-serif';
+
+/**
+ * On a light background type can carry less weight and more air than it can
+ * on ink — 900 weight on white reads as shouting.
+ */
+export const type = {
+  display: {
+    fontSize: 172,
+    fontWeight: 800,
+    lineHeight: 0.86,
+    letterSpacing: '-0.032em',
+  },
+  displaySm: {
+    fontSize: 116,
+    fontWeight: 800,
+    lineHeight: 0.9,
+    letterSpacing: '-0.028em',
+  },
+  heading: {
+    fontSize: 58,
+    fontWeight: 700,
+    lineHeight: 1,
+    letterSpacing: '-0.012em',
+  },
+  body: { fontSize: 22, fontWeight: 400, lineHeight: 1.5, letterSpacing: '0' },
+  kicker: {
+    fontSize: 12,
+    fontWeight: 600,
+    letterSpacing: '0.46em',
+    textTransform: 'uppercase' as const,
+  },
+  annotation: {
+    fontSize: 13,
+    fontWeight: 500,
+    letterSpacing: '0.2em',
+    textTransform: 'uppercase' as const,
+  },
+} as const;
+
+export const grid = {
+  width: WIDTH,
+  height: HEIGHT,
+  margin: 120,
+  cols: 12,
+  gutter: 24,
+  get usable() {
+    return WIDTH - this.margin * 2;
+  },
+  get colW() {
+    return (this.usable - this.gutter * (this.cols - 1)) / this.cols;
+  },
+  col(n: number) {
+    return this.margin + n * (this.colW + this.gutter);
+  },
+  span(n: number) {
+    return n * this.colW + (n - 1) * this.gutter;
+  },
+} as const;

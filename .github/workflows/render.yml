@@ -58,6 +58,9 @@ jobs:
             --muted \
             --log verbose
 
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       - name: Verify frame count and duration
         run: |
           ffprobe -hide_banner -v error \

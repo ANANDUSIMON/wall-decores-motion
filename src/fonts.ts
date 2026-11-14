@@ -4,12 +4,15 @@ import { loadFont as loadJetBrainsMono } from "@remotion/google-fonts/JetBrainsM
 
 export const { fontFamily: interFontFamily } = loadInter("normal", {
 	weights: ["700", "800", "900"],
+	subsets: ["latin"],
 });
 
 export const { fontFamily: instrumentSerifFontFamily } = loadInstrumentSerif("italic", {
 	weights: ["400"],
+	subsets: ["latin"],
 });
 
 export const { fontFamily: jetBrainsMonoFontFamily } = loadJetBrainsMono("normal", {
 	weights: ["400", "500", "700"],
+	subsets: ["latin"],
 });

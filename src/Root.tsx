@@ -5,6 +5,8 @@ import { GalleryFilm, SHOTS, TOTAL_FRAMES } from './GalleryFilm';
 import { PostFX } from './components/PostFX';
 import { VibrantFilm, SCENES as VIBRANT_SCENES, TOTAL as VIBRANT_TOTAL } from './brand/Film';
 import { FPS as VFPS, W as VW, H as VH } from './brand/theme';
+import { BrandReel } from './editorial/BrandReel';
+import { FPS as EFPS, W as EW, H as EH, TOTAL as ETOTAL } from './editorial/theme';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -54,5 +56,15 @@ export const RemotionRoot: React.FC = () => (
     {VIBRANT_SCENES.map(({ id, C, dur }) => (
       <Composition key={id} id={id} component={C} durationInFrames={dur} fps={VFPS} width={VW} height={VH} />
     ))}
+
+    {/* 50s vertical editorial motion-graphics film — Wall Decores Brand Reel */}
+    <Composition
+      id="BrandReel"
+      component={BrandReel}
+      durationInFrames={ETOTAL}
+      fps={EFPS}
+      width={EW}
+      height={EH}
+    />
   </>
 );

@@ -1,0 +1,210 @@
+{
+  "components": [
+    {
+      "slug": "bar-chart",
+      "componentName": "BarChart",
+      "schemaName": "barChartSchema",
+      "importPath": "./bar-chart/BarChart"
+    },
+    {
+      "slug": "blur-reveal",
+      "componentName": "BlurReveal",
+      "schemaName": "blurRevealSchema",
+      "importPath": "./blur-reveal/BlurReveal"
+    },
+    {
+      "slug": "camera-shake",
+      "componentName": "CameraShake",
+      "schemaName": "cameraShakeSchema",
+      "importPath": "./camera-shake/CameraShake"
+    },
+    {
+      "slug": "code-block",
+      "componentName": "CodeBlock",
+      "schemaName": "codeBlockSchema",
+      "importPath": "./code-block/CodeBlock"
+    },
+    {
+      "slug": "count-up",
+      "componentName": "CountUp",
+      "schemaName": "countUpSchema",
+      "importPath": "./count-up/CountUp"
+    },
+    {
+      "slug": "cursor",
+      "componentName": "Cursor",
+      "schemaName": "cursorSchema",
+      "importPath": "./cursor/Cursor"
+    },
+    {
+      "slug": "draw-on",
+      "componentName": "DrawOn",
+      "schemaName": "drawOnSchema",
+      "importPath": "./draw-on/DrawOn"
+    },
+    {
+      "slug": "dynamic-grid",
+      "componentName": "DynamicGrid",
+      "schemaName": "dynamicGridSchema",
+      "importPath": "./dynamic-grid/DynamicGrid"
+    },
+    {
+      "slug": "fade-in",
+      "componentName": "FadeIn",
+      "schemaName": "fadeInSchema",
+      "importPath": "./fade-in/FadeIn"
+    },
+    {
+      "slug": "grain-overlay",
+      "componentName": "GrainOverlay",
+      "schemaName": "grainOverlaySchema",
+      "importPath": "./grain-overlay/GrainOverlay"
+    },
+    {
+      "slug": "highlight",
+      "componentName": "Highlight",
+      "schemaName": "highlightSchema",
+      "importPath": "./highlight/Highlight"
+    },
+    {
+      "slug": "ken-burns",
+      "componentName": "KenBurns",
+      "schemaName": "kenBurnsSchema",
+      "importPath": "./ken-burns/KenBurns"
+    },
+    {
+      "slug": "line-chart",
+      "componentName": "LineChart",
+      "schemaName": "lineChartSchema",
+      "importPath": "./line-chart/LineChart"
+    },
+    {
+      "slug": "logo-sting",
+      "componentName": "LogoSting",
+      "schemaName": "logoStingSchema",
+      "importPath": "./logo-sting/LogoSting"
+    },
+    {
+      "slug": "lower-third",
+      "componentName": "LowerThird",
+      "schemaName": "lowerThirdSchema",
+      "importPath": "./lower-third/LowerThird"
+    },
+    {
+      "slug": "matrix-decode",
+      "componentName": "MatrixDecode",
+      "schemaName": "matrixDecodeSchema",
+      "importPath": "./matrix-decode/MatrixDecode"
+    },
+    {
+      "slug": "parallax",
+      "componentName": "Parallax",
+      "schemaName": "parallaxSchema",
+      "importPath": "./parallax/Parallax"
+    },
+    {
+      "slug": "rgb-glitch-text",
+      "componentName": "RgbGlitchText",
+      "schemaName": "rgbGlitchTextSchema",
+      "importPath": "./rgb-glitch-text/RgbGlitchText"
+    },
+    {
+      "slug": "scale-in",
+      "componentName": "ScaleIn",
+      "schemaName": "scaleInSchema",
+      "importPath": "./scale-in/ScaleIn"
+    },
+    {
+      "slug": "slide-in",
+      "componentName": "SlideIn",
+      "schemaName": "slideInSchema",
+      "importPath": "./slide-in/SlideIn"
+    },
+    {
+      "slug": "spotlight",
+      "componentName": "Spotlight",
+      "schemaName": "spotlightSchema",
+      "importPath": "./spotlight/Spotlight"
+    },
+    {
+      "slug": "stat-card",
+      "componentName": "StatCard",
+      "schemaName": "statCardSchema",
+      "importPath": "./stat-card/StatCard"
+    },
+    {
+      "slug": "terminal",
+      "componentName": "Terminal",
+      "schemaName": "terminalSchema",
+      "importPath": "./terminal/Terminal"
+    },
+    {
+      "slug": "title-card",
+      "componentName": "TitleCard",
+      "schemaName": "titleCardSchema",
+      "importPath": "./title-card/TitleCard"
+    },
+    {
+      "slug": "typewriter",
+      "componentName": "Typewriter",
+      "schemaName": "typewriterSchema",
+      "importPath": "./typewriter/Typewriter"
+    },
+    {
+      "slug": "underline",
+      "componentName": "Underline",
+      "schemaName": "underlineSchema",
+      "importPath": "./underline/Underline"
+    },
+    {
+      "slug": "vignette",
+      "componentName": "Vignette",
+      "schemaName": "vignetteSchema",
+      "importPath": "./vignette/Vignette"
+    },
+    {
+      "slug": "word-stagger",
+      "componentName": "WordStagger",
+      "schemaName": "wordStaggerSchema",
+      "importPath": "./word-stagger/WordStagger"
+    }
+  ],
+  "transitions": [
+    {
+      "slug": "chromatic-aberration",
+      "factoryName": "chromaticAberration",
+      "schemaName": "chromaticAberrationSchema",
+      "importPath": "./transitions/chromatic-aberration/chromaticAberration"
+    },
+    {
+      "slug": "cross-fade",
+      "factoryName": "crossFade",
+      "schemaName": "crossFadeSchema",
+      "importPath": "./transitions/cross-fade/crossFade"
+    },
+    {
+      "slug": "flip",
+      "factoryName": "flip",
+      "schemaName": "flipSchema",
+      "importPath": "./transitions/flip/flip"
+    },
+    {
+      "slug": "grid-pixelate",
+      "factoryName": "gridPixelate",
+      "schemaName": "gridPixelateSchema",
+      "importPath": "./transitions/grid-pixelate/gridPixelate"
+    },
+    {
+      "slug": "type-mask",
+      "factoryName": "typeMask",
+      "schemaName": "typeMaskSchema",
+      "importPath": "./transitions/type-mask/typeMask"
+    },
+    {
+      "slug": "wipe",
+      "factoryName": "wipe",
+      "schemaName": "wipeSchema",
+      "importPath": "./transitions/wipe/wipe"
+    }
+  ]
+}

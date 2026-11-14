@@ -1,0 +1,149 @@
+name: Render Vibrant Brand Film
+
+on:
+  workflow_dispatch:
+
+jobs:
+  # ---------------------------------------------------------------------
+  # One machine per scene. Five scenes, each its own matrix job — same
+  # parallel-matrix pattern as the Gallery Film's render.yml, just a
+  # separate workflow because this is a different video (1080x1920,
+  # crossfaded, with a music + voiceover mix) with its own scene set.
+  # ---------------------------------------------------------------------
+  render-scene:
+    name: Render ${{ matrix.scene.id }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scene:
+          - { n: '01', id: 'VS1' }
+          - { n: '02', id: 'VS2' }
+          - { n: '03', id: 'VS3' }
+          - { n: '04', id: 'VS4' }
+          - { n: '05', id: 'VS5' }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Install Chrome for Remotion
+        run: npx remotion browser ensure
+
+      - name: Render ${{ matrix.scene.id }}
+        run: |
+          mkdir -p out
+          npx remotion render src/index.ts ${{ matrix.scene.id }} \
+            out/${{ matrix.scene.n }}-${{ matrix.scene.id }}.mp4 \
+            --codec h264 \
+            --crf 18 \
+            --x264-preset slow \
+            --pixel-format yuv420p \
+            --muted \
+            --log verbose
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Verify frame count and duration
+        run: |
+          ffprobe -hide_banner -v error \
+            -select_streams v:0 \
+            -show_entries stream=nb_frames,width,height,r_frame_rate,codec_name \
+            -show_entries format=duration \
+            -of default=noprint_wrappers=1 \
+            out/${{ matrix.scene.n }}-${{ matrix.scene.id }}.mp4
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brand-scene-${{ matrix.scene.n }}
+          path: out/${{ matrix.scene.n }}-${{ matrix.scene.id }}.mp4
+          retention-days: 7
+
+  # ---------------------------------------------------------------------
+  # Crossfade the five scenes together (not a lossless concat — each
+  # scene's tail dissolves into the next scene's head), then mux the
+  # music bed + voiceover onto the result.
+  # ---------------------------------------------------------------------
+  concat:
+    name: Crossfade + mux audio
+    needs: render-scene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Download all scenes
+        uses: actions/download-artifact@v4
+        with:
+          path: scenes
+          pattern: brand-scene-*
+          merge-multiple: true
+
+      - name: List downloaded scenes
+        run: ls -1 scenes
+
+      # Scene durations are fixed at build time (4s, 14s, 10s, 16s, 6s) —
+      # each xfade overlap shortens the running total by the 0.5s overlap,
+      # so the offsets below are cumulative-duration-so-far minus the
+      # overlaps already spent. Final picture runs ~48s, not 50s raw.
+      - name: Crossfade all five scenes into one silent video
+        run: |
+          mkdir -p out
+          ffmpeg -hide_banner \
+            -i scenes/01-VS1.mp4 -i scenes/02-VS2.mp4 -i scenes/03-VS3.mp4 \
+            -i scenes/04-VS4.mp4 -i scenes/05-VS5.mp4 \
+            -filter_complex "\
+              [0:v][1:v]xfade=transition=fade:duration=0.5:offset=3.5[v01]; \
+              [v01][2:v]xfade=transition=fade:duration=0.5:offset=17.0[v012]; \
+              [v012][3:v]xfade=transition=fade:duration=0.5:offset=26.5[v0123]; \
+              [v0123][4:v]xfade=transition=fade:duration=0.5:offset=42.0[vout]" \
+            -map "[vout]" -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p \
+            out/joined-silent.mp4
+
+      - name: Measure joined picture duration
+        id: dur
+        run: |
+          D=$(ffprobe -hide_banner -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 out/joined-silent.mp4)
+          echo "seconds=$D" >> "$GITHUB_OUTPUT"
+          echo "Joined picture duration: ${D}s"
+
+      # Music loops under everything at ~30%; the voiceover (its own
+      # natural length) sits over it at full volume from the top, per
+      # CLAUDE.md's audio placement.
+      - name: Mux music bed + voiceover onto the joined picture
+        run: |
+          DUR="${{ steps.dur.outputs.seconds }}"
+          ffmpeg -hide_banner \
+            -i out/joined-silent.mp4 \
+            -stream_loop -1 -i public/audio/music.mp3 \
+            -i public/audio/vo.mp3 \
+            -filter_complex "\
+              [1:a]volume=0.3,atrim=0:${DUR}[bg]; \
+              [2:a]volume=1.0[vo]; \
+              [bg][vo]amix=inputs=2:duration=first:dropout_transition=0[aout]" \
+            -map 0:v -map "[aout]" \
+            -c:v copy -c:a aac -shortest \
+            out/wall-decores-vibrant-brand-final.mp4
+
+      - name: Report
+        run: |
+          ffprobe -hide_banner -v error \
+            -show_entries format=duration,size \
+            -show_entries stream=width,height,r_frame_rate,codec_name,codec_type \
+            -of default=noprint_wrappers=1 \
+            out/wall-decores-vibrant-brand-final.mp4
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brand-film-final
+          path: out/wall-decores-vibrant-brand-final.mp4
+          retention-days: 30

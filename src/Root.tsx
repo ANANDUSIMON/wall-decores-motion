@@ -3,6 +3,8 @@ import { Composition } from 'remotion';
 import { FPS, WIDTH, HEIGHT } from './theme';
 import { GalleryFilm, SHOTS, TOTAL_FRAMES } from './GalleryFilm';
 import { PostFX } from './components/PostFX';
+import { VibrantFilm, SCENES as VIBRANT_SCENES, TOTAL as VIBRANT_TOTAL } from './brand/Film';
+import { FPS as VFPS, W as VW, H as VH } from './brand/theme';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -39,5 +41,18 @@ export const RemotionRoot: React.FC = () => (
         />
       );
     })}
+
+    {/* 50s vertical brand film — Wall Decores Vibrant, S1-S5 matrix render */}
+    <Composition
+      id="VibrantFilm"
+      component={VibrantFilm}
+      durationInFrames={VIBRANT_TOTAL}
+      fps={VFPS}
+      width={VW}
+      height={VH}
+    />
+    {VIBRANT_SCENES.map(({ id, C, dur }) => (
+      <Composition key={id} id={id} component={C} durationInFrames={dur} fps={VFPS} width={VW} height={VH} />
+    ))}
   </>
 );

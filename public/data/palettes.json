@@ -1,0 +1,578 @@
+{
+  "title": "Peaceful Vibrant Canvas Painting Colour Composition Specification",
+  "version": "1.0",
+  "purpose": "Contemporary expressive oil/acrylic paintings with attention-catching but gentle, optimistic colour balance, especially for modern Kerala interiors.",
+  "psychology_note": "Colour-emotion associations are subjective and context-dependent; no palette guarantees peace, happiness, relaxation or neurological effects.",
+  "reference_artwork": {
+    "subject": "Vishnu reclining on Shesha",
+    "visual_analysis": "Peach and coral atmosphere with ocean teal currents, dusty blue figure, gold details, ivory breathing space; organic curves and controlled focal contrast.",
+    "approximate_observed_color_distribution": [
+      {
+        "hex": "#F4B89B",
+        "percent": 30
+      },
+      {
+        "hex": "#F17F70",
+        "percent": 24
+      },
+      {
+        "hex": "#178D9B",
+        "percent": 22
+      },
+      {
+        "hex": "#83AFC0",
+        "percent": 12
+      },
+      {
+        "hex": "#E5B26E",
+        "percent": 7
+      },
+      {
+        "hex": "#F7E0C9",
+        "percent": 5
+      }
+    ],
+    "note": "Visual estimates, not pixel-sampled or physical pigment measurements."
+  },
+  "recommended_global_area_ratio": {
+    "soft_atmosphere_percent_range": [
+      45,
+      55
+    ],
+    "cool_structural_percent_range": [
+      25,
+      30
+    ],
+    "warm_expressive_accent_percent_range": [
+      10,
+      15
+    ],
+    "highlight_and_deep_value_percent_range": [
+      5,
+      10
+    ],
+    "example_exact_100_percent": {
+      "soft_atmosphere": 50,
+      "cool_structural": 28,
+      "warm_expressive_accent": 14,
+      "highlights_and_deep_values": 8
+    },
+    "rule": "These are functional colour groups and may overlap individual palette colour roles. For each palette use its explicit five-colour distribution as the source of truth."
+  },
+  "composition_rules": {
+    "dominance": "Avoid equal-sized high-saturation patches. Establish one broad atmospheric field and a subordinate cool structure.",
+    "visual_flow": "Use broad organic S-curves, diagonals and repeated rhythmic brushstrokes; provide low-detail resting zones.",
+    "value": "Use light, middle and selective deep values; do not rely only on hue differences.",
+    "saturation": "Concentrate maximum saturation in about 10–20% of the most important focal region, with softer surrounding colour.",
+    "edge_hierarchy": "Sharpest edges near subject landmarks; soft or lost edges in background.",
+    "texture": "Heavier impasto in flowing fabric and currents; restrained texture on faces, hands and quiet atmosphere.",
+    "fidelity": "When composing a room mockup using an existing painting, preserve its actual geometry, composition, brushstrokes and colours; do not regenerate the art inside the frame.",
+    "testing": "Review at thumbnail, room-view and close-up scale; check colour balance under daylight and warm indoor lighting."
+  },
+  "palettes": [
+    {
+      "id": "P01",
+      "name": "Celestial Coral",
+      "intended_impression": [
+        "Luminous",
+        "peaceful",
+        "expressive"
+      ],
+      "best_for": "Mythological figures, flowing cloth and lotus compositions",
+      "colors": [
+        {
+          "hex": "#F4B89B",
+          "canvas_area_percent": 30,
+          "role": "dominant"
+        },
+        {
+          "hex": "#F17F70",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#178D9B",
+          "canvas_area_percent": 20,
+          "role": "supporting"
+        },
+        {
+          "hex": "#83AFC0",
+          "canvas_area_percent": 15,
+          "role": "secondary"
+        },
+        {
+          "hex": "#F7E0C9",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    },
+    {
+      "id": "P02",
+      "name": "Lotus Lagoon",
+      "intended_impression": [
+        "Fresh",
+        "restful",
+        "botanical"
+      ],
+      "best_for": "Lotus, floral impasto, organic abstracts",
+      "colors": [
+        {
+          "hex": "#F49AA8",
+          "canvas_area_percent": 25,
+          "role": "dominant"
+        },
+        {
+          "hex": "#F8C8B6",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#35A99C",
+          "canvas_area_percent": 25,
+          "role": "supporting"
+        },
+        {
+          "hex": "#87C7B7",
+          "canvas_area_percent": 15,
+          "role": "secondary"
+        },
+        {
+          "hex": "#F5E5C9",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    },
+    {
+      "id": "P03",
+      "name": "Saffron Sky",
+      "intended_impression": [
+        "Warm",
+        "uplifting",
+        "contemplative"
+      ],
+      "best_for": "Krishna, landscapes, serene figurative work",
+      "colors": [
+        {
+          "hex": "#F5BD62",
+          "canvas_area_percent": 25,
+          "role": "dominant"
+        },
+        {
+          "hex": "#F7D8A5",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#5B94CF",
+          "canvas_area_percent": 25,
+          "role": "supporting"
+        },
+        {
+          "hex": "#A7CBE5",
+          "canvas_area_percent": 15,
+          "role": "secondary"
+        },
+        {
+          "hex": "#E98975",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    },
+    {
+      "id": "P04",
+      "name": "Peacock Dawn",
+      "intended_impression": [
+        "Rich",
+        "harmonious",
+        "joyful"
+      ],
+      "best_for": "Vishnu, Krishna, expressive peacock abstractions",
+      "colors": [
+        {
+          "hex": "#0E8C9C",
+          "canvas_area_percent": 25,
+          "role": "dominant"
+        },
+        {
+          "hex": "#65C3BA",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#E6AD61",
+          "canvas_area_percent": 20,
+          "role": "supporting"
+        },
+        {
+          "hex": "#F1B8A6",
+          "canvas_area_percent": 20,
+          "role": "secondary"
+        },
+        {
+          "hex": "#F8E5CF",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    },
+    {
+      "id": "P05",
+      "name": "Orchid Serenity",
+      "intended_impression": [
+        "Dreamy",
+        "gentle",
+        "creative"
+      ],
+      "best_for": "Abstract figurative, peaceful portraits",
+      "colors": [
+        {
+          "hex": "#A28ACD",
+          "canvas_area_percent": 25,
+          "role": "dominant"
+        },
+        {
+          "hex": "#D5B9E5",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#F4A7A1",
+          "canvas_area_percent": 20,
+          "role": "supporting"
+        },
+        {
+          "hex": "#F5D2AD",
+          "canvas_area_percent": 20,
+          "role": "secondary"
+        },
+        {
+          "hex": "#7FAEB5",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    },
+    {
+      "id": "P06",
+      "name": "Golden Turquoise",
+      "intended_impression": [
+        "Radiant",
+        "fresh",
+        "balanced"
+      ],
+      "best_for": "Marine currents, mythological abstracts",
+      "colors": [
+        {
+          "hex": "#19A5AE",
+          "canvas_area_percent": 25,
+          "role": "dominant"
+        },
+        {
+          "hex": "#80C9C7",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#F3BD65",
+          "canvas_area_percent": 20,
+          "role": "supporting"
+        },
+        {
+          "hex": "#F6DDAD",
+          "canvas_area_percent": 20,
+          "role": "secondary"
+        },
+        {
+          "hex": "#E98C79",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    },
+    {
+      "id": "P07",
+      "name": "Rosewater Emerald",
+      "intended_impression": [
+        "Elegant",
+        "restorative",
+        "organic"
+      ],
+      "best_for": "Botanical, figurative, contemporary floral",
+      "colors": [
+        {
+          "hex": "#EFA9B3",
+          "canvas_area_percent": 25,
+          "role": "dominant"
+        },
+        {
+          "hex": "#F5D5C6",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#278E7C",
+          "canvas_area_percent": 20,
+          "role": "supporting"
+        },
+        {
+          "hex": "#83C0A6",
+          "canvas_area_percent": 20,
+          "role": "secondary"
+        },
+        {
+          "hex": "#EACB86",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    },
+    {
+      "id": "P08",
+      "name": "Apricot Indigo",
+      "intended_impression": [
+        "Expressive",
+        "grounded",
+        "sophisticated"
+      ],
+      "best_for": "Shiva, Krishna, atmospheric portraits",
+      "colors": [
+        {
+          "hex": "#F4B083",
+          "canvas_area_percent": 25,
+          "role": "dominant"
+        },
+        {
+          "hex": "#F6D1AD",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#5268A9",
+          "canvas_area_percent": 20,
+          "role": "supporting"
+        },
+        {
+          "hex": "#91A5D4",
+          "canvas_area_percent": 20,
+          "role": "secondary"
+        },
+        {
+          "hex": "#D7B46D",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    },
+    {
+      "id": "P09",
+      "name": "Spring Hibiscus",
+      "intended_impression": [
+        "Cheerful",
+        "energetic",
+        "soft"
+      ],
+      "best_for": "Floral impasto, nature abstracts",
+      "colors": [
+        {
+          "hex": "#E97791",
+          "canvas_area_percent": 25,
+          "role": "dominant"
+        },
+        {
+          "hex": "#F5B2B3",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#8DBF82",
+          "canvas_area_percent": 20,
+          "role": "supporting"
+        },
+        {
+          "hex": "#C6D7A0",
+          "canvas_area_percent": 20,
+          "role": "secondary"
+        },
+        {
+          "hex": "#F7DFB5",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    },
+    {
+      "id": "P10",
+      "name": "Lavender Tide",
+      "intended_impression": [
+        "Meditative",
+        "airy",
+        "fluid"
+      ],
+      "best_for": "Abstract currents, peaceful figurative art",
+      "colors": [
+        {
+          "hex": "#9C8FD0",
+          "canvas_area_percent": 25,
+          "role": "dominant"
+        },
+        {
+          "hex": "#D1C2E7",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#3CA7B4",
+          "canvas_area_percent": 20,
+          "role": "supporting"
+        },
+        {
+          "hex": "#A2D4D1",
+          "canvas_area_percent": 20,
+          "role": "secondary"
+        },
+        {
+          "hex": "#F2C1A3",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    },
+    {
+      "id": "P11",
+      "name": "Amber Blossom",
+      "intended_impression": [
+        "Optimistic",
+        "warm",
+        "harmonious"
+      ],
+      "best_for": "Contemporary flowers, warm expressive landscapes",
+      "colors": [
+        {
+          "hex": "#EAA44F",
+          "canvas_area_percent": 25,
+          "role": "dominant"
+        },
+        {
+          "hex": "#F5D59D",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#E78989",
+          "canvas_area_percent": 20,
+          "role": "supporting"
+        },
+        {
+          "hex": "#A7B7A0",
+          "canvas_area_percent": 20,
+          "role": "secondary"
+        },
+        {
+          "hex": "#F6E9D4",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    },
+    {
+      "id": "P12",
+      "name": "Coral & Jade",
+      "intended_impression": [
+        "Vibrant",
+        "refined",
+        "restful"
+      ],
+      "best_for": "Modern Indian figurative, lotus and botanical work",
+      "colors": [
+        {
+          "hex": "#F07973",
+          "canvas_area_percent": 25,
+          "role": "dominant"
+        },
+        {
+          "hex": "#F6B9A5",
+          "canvas_area_percent": 25,
+          "role": "co_dominant"
+        },
+        {
+          "hex": "#2C9B8E",
+          "canvas_area_percent": 20,
+          "role": "supporting"
+        },
+        {
+          "hex": "#A1D0B9",
+          "canvas_area_percent": 20,
+          "role": "secondary"
+        },
+        {
+          "hex": "#F4E1C5",
+          "canvas_area_percent": 10,
+          "role": "highlight_or_rest"
+        }
+      ],
+      "dominance_guidance": "First two colours establish the main field; reserve saturated focal strokes for face, hands, flowers or movement lines. Percentages describe visible canvas area, not pigment mixing ratios.",
+      "calm_happy_balance": "Keep large passages softly blended or broken-colour; use crisp high-chroma contrast only around the main focal area."
+    }
+  ],
+  "application_by_subject": {
+    "mythological_figurative": [
+      "P01",
+      "P04",
+      "P08"
+    ],
+    "lotus_and_botanical": [
+      "P02",
+      "P07",
+      "P09",
+      "P12"
+    ],
+    "fluid_abstract": [
+      "P06",
+      "P10",
+      "P12"
+    ],
+    "gentle_portraits": [
+      "P05",
+      "P08"
+    ],
+    "warm_landscapes": [
+      "P03",
+      "P11"
+    ]
+  },
+  "quality_checks": [
+    "Each palette totals 100% visible canvas area.",
+    "Dominant colours visibly occupy their stated proportions.",
+    "High saturation is focal rather than uniformly spread.",
+    "There is enough light-value breathing room.",
+    "Warm/cool colours interweave without becoming muddy.",
+    "Facial features and symbolic objects remain readable where required.",
+    "Actual paint texture varies by passage.",
+    "Artwork is evaluated in its intended interior light."
+  ]
+}

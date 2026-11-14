@@ -7,6 +7,8 @@ import { VibrantFilm, SCENES as VIBRANT_SCENES, TOTAL as VIBRANT_TOTAL } from '.
 import { FPS as VFPS, W as VW, H as VH } from './brand/theme';
 import { BrandReel } from './editorial/BrandReel';
 import { FPS as EFPS, W as EW, H as EH, TOTAL as ETOTAL } from './editorial/theme';
+import { VectorFilm } from './vectorfilm/VectorFilm';
+import { FPS as VFFPS, W as VFW, H as VFH, TOTAL as VFTOTAL } from './vectorfilm/theme';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -65,6 +67,16 @@ export const RemotionRoot: React.FC = () => (
       fps={EFPS}
       width={EW}
       height={EH}
+    />
+
+    {/* 60s vertical vector film — room built in vector, painting laid down by brush */}
+    <Composition
+      id="VectorFilm"
+      component={VectorFilm}
+      durationInFrames={VFTOTAL}
+      fps={VFFPS}
+      width={VFW}
+      height={VFH}
     />
   </>
 );

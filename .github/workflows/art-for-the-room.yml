@@ -1,0 +1,55 @@
+name: Art for the Room
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - src/art-for-the-room.tsx
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { scene: VS1, frames: '0-359' }
+          - { scene: VS2, frames: '360-1439' }
+          - { scene: VS3, frames: '1440-2159' }
+          - { scene: VS4, frames: '2160-2759' }
+          - { scene: VS5, frames: '2760-3599' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx remotion browser ensure
+      - run: npx remotion render src/art-for-the-room.tsx ArtForTheRoom out/${{ matrix.scene }}.mp4 --frames=${{ matrix.frames }} --codec=h264 --crf=18 --pixel-format=yuv420p --muted
+      - uses: actions/upload-artifact@v4
+        with:
+          name: room-${{ matrix.scene }}
+          path: out/${{ matrix.scene }}.mp4
+          retention-days: 7
+  join:
+    needs: render
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: room-VS*
+          path: scenes
+          merge-multiple: true
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Join five shots and verify silent 60 fps master
+        run: |
+          mkdir -p out
+          for i in 1 2 3 4 5; do echo "file 'scenes/VS$i.mp4'"; done > list.txt
+          file=out/wall-decores-art-for-the-room.mp4
+          ffmpeg -v error -f concat -safe 0 -i list.txt -map 0:v:0 -c copy -an -movflags +faststart "$file"
+          ffprobe -v error -show_streams -of json "$file" | jq -e '.streams | length == 1 and (.[0] | .codec_type == "video" and .width == 1080 and .height == 1920 and .nb_frames == "3600" and .r_frame_rate == "60/1" and ((.duration|tonumber) - 60 | fabs) < 0.02)'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: art-for-the-room-final
+          path: out/wall-decores-art-for-the-room.mp4
+          retention-days: 30

@@ -11,6 +11,7 @@ import { Wall } from '../components/Wall';
 import { Camera, Layer } from '../components/Camera';
 import { GalleryCanvas, type Pose } from '../components/GalleryCanvas';
 import { MaskRise } from '../components/KineticText';
+import { LottieAccent } from '../components/LottieAccent';
 
 /**
  * SHOT 4 — THE WALL · 135 frames (4.5s)
@@ -112,6 +113,10 @@ export const Shot4: React.FC = () => {
       >
         Residential · Hospitality · Commercial
       </div>
+
+      {/* picks up exactly where Shot3's tail left off — trimBefore=20 skips
+          past the covering half of the same asset, straight to the uncover */}
+      <LottieAccent name="brush-swipe-transition" durationInFrames={25} trimBefore={20} />
     </AbsoluteFill>
   );
 };

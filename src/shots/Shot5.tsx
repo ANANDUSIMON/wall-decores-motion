@@ -11,6 +11,7 @@ import { Wall } from '../components/Wall';
 import { Camera, Layer } from '../components/Camera';
 import { GalleryCanvas, type Pose } from '../components/GalleryCanvas';
 import { MaskRise, Dimension } from '../components/KineticText';
+import { LottieAccent } from '../components/LottieAccent';
 
 /**
  * SHOT 5 — MADE TO SIZE · 120 frames (4.0s)
@@ -86,6 +87,10 @@ export const Shot5: React.FC = () => {
           />
         </Layer>
       </Camera>
+
+      {/* dust catching the light over the spec drawing — ambient, not a
+          message, so it stays well under the text */}
+      <LottieAccent name="dust-particles" loop style={{ opacity: 0.35 }} />
 
       <div style={{ position: 'absolute', left: grid.margin, bottom: 206 }}>
         <MaskRise start={62} duration={22} style={{ ...type.heading }}>

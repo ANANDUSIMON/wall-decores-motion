@@ -11,6 +11,7 @@ import { Wall } from '../components/Wall';
 import { Camera, Layer } from '../components/Camera';
 import { GalleryCanvas, type Pose } from '../components/GalleryCanvas';
 import { MaskRise } from '../components/KineticText';
+import { LottieAccent } from '../components/LottieAccent';
 
 /**
  * SHOT 2 — THE HANG · 150 frames (5.0s)
@@ -107,6 +108,11 @@ export const Shot2: React.FC = () => {
             landed within a few pixels of the top-left canvas, and type that
             nearly touches an image reads as a mistake rather than a choice. */}
         <Layer depth={1.4}>
+          {/* a brush mark painting in under the title, so the hand that hung
+              the paintings reads as the same hand behind the name */}
+          <div style={{ position: 'absolute', inset: 0, transform: 'translate(-60px, -382px)' }}>
+            <LottieAccent name="paint-stroke-reveal" from={58} durationInFrames={90} />
+          </div>
           <div style={{ position: 'absolute', left: grid.margin, top: 60 }}>
             <MaskRise start={74} duration={22} style={{ ...type.displaySm, fontSize: 92 }}>
               FIVE YEARS

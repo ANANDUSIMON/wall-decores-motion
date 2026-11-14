@@ -5,6 +5,7 @@ import { Wall } from '../components/Wall';
 import { Camera, Layer } from '../components/Camera';
 import { GalleryCanvas, type Pose } from '../components/GalleryCanvas';
 import { RollSwap, MaskRise } from '../components/KineticText';
+import { LottieAccent } from '../components/LottieAccent';
 
 /**
  * SHOT 3 — TEXTURE · 135 frames (4.5s)
@@ -104,6 +105,11 @@ export const Shot3: React.FC = () => {
       >
         Oil · Impasto · Bespoke
       </div>
+
+      {/* the curtain rises through the last 20 frames here and continues
+          rising through the first 25 of Shot4 — one continuous swipe split
+          across two independently rendered compositions */}
+      <LottieAccent name="brush-swipe-transition" from={115} durationInFrames={20} />
     </AbsoluteFill>
   );
 };

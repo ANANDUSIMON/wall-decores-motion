@@ -1,0 +1,105 @@
+name: Render Vector Showcase
+
+on:
+  workflow_dispatch:
+
+jobs:
+  # ---------------------------------------------------------------------
+  # VectorShowcase is one continuous camera move (scenes overlap), so it is
+  # split by FRAME RANGE instead of by scene: six machines each render ten
+  # seconds (600 frames @ 60fps) in parallel.
+  # ---------------------------------------------------------------------
+  render-chunk:
+    name: Render frames ${{ matrix.chunk.from }}-${{ matrix.chunk.to }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk:
+          - { n: '01', from: 0, to: 599 }
+          - { n: '02', from: 600, to: 1199 }
+          - { n: '03', from: 1200, to: 1799 }
+          - { n: '04', from: 1800, to: 2399 }
+          - { n: '05', from: 2400, to: 2999 }
+          - { n: '06', from: 3000, to: 3599 }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Install Chrome for Remotion
+        run: npx remotion browser ensure
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # --muted: no silent AAC track, so chunks concat without drift.
+      - name: Render chunk ${{ matrix.chunk.n }}
+        run: |
+          mkdir -p out
+          npx remotion render src/index.ts VectorShowcase \
+            out/${{ matrix.chunk.n }}.mp4 \
+            --frames=${{ matrix.chunk.from }}-${{ matrix.chunk.to }} \
+            --codec h264 \
+            --crf 18 \
+            --pixel-format yuv420p \
+            --muted \
+            --log verbose
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vs-chunk-${{ matrix.chunk.n }}
+          path: out/${{ matrix.chunk.n }}.mp4
+          retention-days: 7
+
+  concat:
+    name: Join chunks into final film
+    needs: render-chunk
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Download all chunks
+        uses: actions/download-artifact@v4
+        with:
+          path: chunks
+          pattern: vs-chunk-*
+          merge-multiple: true
+
+      - name: Build concat list in order
+        run: |
+          mkdir -p out
+          for f in $(ls -1 chunks/*.mp4 | sort); do
+            echo "file '$PWD/$f'" >> list.txt
+          done
+          cat list.txt
+
+      # Concat demuxer with -c copy — no re-encoding.
+      - name: Join without re-encoding
+        run: |
+          ffmpeg -hide_banner -f concat -safe 0 -i list.txt \
+            -c copy -movflags +faststart \
+            out/wall-decores-vector-showcase.mp4
+
+      - name: Verify (expect 3600 frames, 60fps, 1920x1080, ~60s)
+        run: |
+          ffprobe -hide_banner -v error -count_frames \
+            -select_streams v:0 \
+            -show_entries stream=nb_read_frames,width,height,r_frame_rate,codec_name \
+            -show_entries format=duration,size \
+            -of default=noprint_wrappers=1 \
+            out/wall-decores-vector-showcase.mp4
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: final-video
+          path: out/wall-decores-vector-showcase.mp4
+          retention-days: 30

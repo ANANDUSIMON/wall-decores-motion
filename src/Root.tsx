@@ -11,6 +11,8 @@ import { VectorFilm } from './vectorfilm/VectorFilm';
 import { FPS as VFFPS, W as VFW, H as VFH, TOTAL as VFTOTAL } from './vectorfilm/theme';
 import { ShowcaseFilm } from './showcase/ShowcaseFilm';
 import { FPS as SFPS, W as SW, H as SH, TOTAL as STOTAL } from './showcase/theme';
+import { VectorShowcase } from './vectorshowcase/VectorShowcase';
+import { FPS as VSFPS, W as VSW, H as VSH, TOTAL as VSTOTAL } from './vectorshowcase/theme';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -89,6 +91,16 @@ export const RemotionRoot: React.FC = () => (
       fps={SFPS}
       width={SW}
       height={SH}
+    />
+
+    {/* 60s 1080p landscape vector showcase — 5 rooms re-dressed, 5 paintings painted to match */}
+    <Composition
+      id="VectorShowcase"
+      component={VectorShowcase}
+      durationInFrames={VSTOTAL}
+      fps={VSFPS}
+      width={VSW}
+      height={VSH}
     />
   </>
 );

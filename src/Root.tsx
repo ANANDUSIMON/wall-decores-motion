@@ -9,6 +9,8 @@ import { BrandReel } from './editorial/BrandReel';
 import { FPS as EFPS, W as EW, H as EH, TOTAL as ETOTAL } from './editorial/theme';
 import { VectorFilm } from './vectorfilm/VectorFilm';
 import { FPS as VFFPS, W as VFW, H as VFH, TOTAL as VFTOTAL } from './vectorfilm/theme';
+import { ShowcaseFilm } from './showcase/ShowcaseFilm';
+import { FPS as SFPS, W as SW, H as SH, TOTAL as STOTAL } from './showcase/theme';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -77,6 +79,16 @@ export const RemotionRoot: React.FC = () => (
       fps={VFFPS}
       width={VFW}
       height={VFH}
+    />
+
+    {/* 60s 1080p showcase film — 5 rooms × 5 paintings with colour palettes */}
+    <Composition
+      id="ShowcaseFilm"
+      component={ShowcaseFilm}
+      durationInFrames={STOTAL}
+      fps={SFPS}
+      width={SW}
+      height={SH}
     />
   </>
 );

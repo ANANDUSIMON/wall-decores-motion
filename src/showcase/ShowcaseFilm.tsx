@@ -19,7 +19,6 @@ const sec = (name: string) => {
 /*  ShowcaseFilm                                                       */
 /* ------------------------------------------------------------------ */
 export const ShowcaseFilm: React.FC = () => {
-  const intro = sec('INTRO');
   const room1 = sec('ROOM1');
   const room2 = sec('ROOM2');
   const room3 = sec('ROOM3');
@@ -31,7 +30,7 @@ export const ShowcaseFilm: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: BRAND.cream }}>
       {/* Scene 1: Brand intro with brush strokes */}
-      <BrushIntro from={intro.from} to={intro.to} />
+      <BrushIntro />
 
       {/* Scenes 2-6: Five rooms with matching paintings */}
       <RoomScene palette={ROOMS[0]} from={room1.from} to={room1.to} index={0} />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, useCurrentFrame } from 'remotion';
+import { AbsoluteFill, staticFile, useCurrentFrame } from 'remotion';
 import { CREAM, FPS, HAIRLINE, INK, LAYOUT, SECTIONS, TOTAL, TYPE, BRAND, fonts } from './theme';
 import { prog } from './motion';
 import { ShowRoom } from './room/ShowRoom';
@@ -52,15 +52,21 @@ const HUD: React.FC = () => {
   );
 };
 
-/** Static paper grain — one cheap filter, no motion. */
+/**
+ * Static paper grain. Baked to a PNG and tiled rather than an feTurbulence
+ * filter: the pattern never moves, but a filter still gets re-rasterized by
+ * the renderer on every one of the film's 3,600 frames — a tiled <image>
+ * costs that render once, at import, instead of once per frame.
+ */
 const Grain: React.FC = () => (
   <AbsoluteFill style={{ pointerEvents: 'none', mixBlendMode: 'multiply', opacity: 0.07 }}>
     <svg width="100%" height="100%">
-      <filter id="vs-grain">
-        <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="2" />
-        <feColorMatrix type="saturate" values="0" />
-      </filter>
-      <rect width="100%" height="100%" filter="url(#vs-grain)" />
+      <defs>
+        <pattern id="vs-grain" patternUnits="userSpaceOnUse" width={256} height={256}>
+          <image href={staticFile('weave-noise.png')} x={0} y={0} width={256} height={256} preserveAspectRatio="none" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#vs-grain)" />
     </svg>
   </AbsoluteFill>
 );

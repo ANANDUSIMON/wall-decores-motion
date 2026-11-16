@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { staticFile } from 'remotion';
 import { ease } from '../theme';
 import { lerpHex, pop, prog, seeded } from '../motion';
 import { markColor, pointAt, type Painting, type ScheduledMark } from './kit';
@@ -78,10 +79,13 @@ export const PaintedCanvas: React.FC<{
           <feDisplacementMap in="SourceGraphic" in2="n" scale="2.5" xChannelSelector="R" yChannelSelector="G" />
         </filter>
         {weave && (
-          <filter id={`${uid}-weave`} x="0" y="0" width="100%" height="100%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" />
-            <feColorMatrix type="saturate" values="0" />
-          </filter>
+          // Static cotton-weave grain. Baked once to a PNG instead of an
+          // feTurbulence filter: the noise never changes frame to frame, but
+          // an SVG filter is re-rasterized by the renderer on every single
+          // frame regardless — a tiled image costs that once, not 3,600 times.
+          <pattern id={`${uid}-weave`} patternUnits="userSpaceOnUse" width={256} height={256}>
+            <image href={staticFile('weave-noise.png')} x={0} y={0} width={256} height={256} preserveAspectRatio="none" />
+          </pattern>
         )}
       </defs>
 
@@ -142,7 +146,7 @@ export const PaintedCanvas: React.FC<{
         })}
       </g>
 
-      {weave && <rect x={0} y={0} width={800} height={400} filter={`url(#${uid}-weave)`} opacity={0.12} style={{ mixBlendMode: 'multiply' }} />}
+      {weave && <rect x={0} y={0} width={800} height={400} fill={`url(#${uid}-weave)`} opacity={0.12} style={{ mixBlendMode: 'multiply' }} />}
     </svg>
   );
 };

@@ -14,6 +14,7 @@ import { FPS as SFPS, W as SW, H as SH, TOTAL as STOTAL } from './showcase/theme
 import { VectorShowcase } from './vectorshowcase/VectorShowcase';
 import { FPS as VSFPS, W as VSW, H as VSH, TOTAL as VSTOTAL } from './vectorshowcase/theme';
 import { RoomShowcase, ROOM_SHOWCASE_FPS, ROOM_SHOWCASE_DURATION } from './compositions/RoomShowcase';
+import { TestRoom3D } from './TestRoom3D';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -112,6 +113,16 @@ export const RemotionRoot: React.FC = () => (
       fps={ROOM_SHOWCASE_FPS}
       width={WIDTH}
       height={HEIGHT}
+    />
+
+    {/* Test 3D room — Lambda render pipeline smoke test */}
+    <Composition
+      id="TestRoom3D"
+      component={TestRoom3D}
+      durationInFrames={240}
+      fps={30}
+      width={1920}
+      height={1080}
     />
   </>
 );

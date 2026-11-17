@@ -13,6 +13,7 @@ import { ShowcaseFilm } from './showcase/ShowcaseFilm';
 import { FPS as SFPS, W as SW, H as SH, TOTAL as STOTAL } from './showcase/theme';
 import { VectorShowcase } from './vectorshowcase/VectorShowcase';
 import { FPS as VSFPS, W as VSW, H as VSH, TOTAL as VSTOTAL } from './vectorshowcase/theme';
+import { RoomShowcase, ROOM_SHOWCASE_FPS, ROOM_SHOWCASE_DURATION } from './compositions/RoomShowcase';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -101,6 +102,16 @@ export const RemotionRoot: React.FC = () => (
       fps={VSFPS}
       width={VSW}
       height={VSH}
+    />
+
+    {/* 3D room visualization pipeline — Three.js canvas via @remotion/three, Lambda-safe */}
+    <Composition
+      id="RoomShowcase"
+      component={RoomShowcase}
+      durationInFrames={ROOM_SHOWCASE_DURATION}
+      fps={ROOM_SHOWCASE_FPS}
+      width={WIDTH}
+      height={HEIGHT}
     />
   </>
 );

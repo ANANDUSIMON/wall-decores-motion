@@ -1,0 +1,49 @@
+name: Render Room Showcase (3D test)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render:
+    name: Render RoomShowcase
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Install Chrome for Remotion
+        run: npx remotion browser ensure
+
+      - name: Render RoomShowcase
+        run: |
+          mkdir -p out
+          npx remotion render src/index.ts RoomShowcase \
+            out/room-test.mp4 \
+            --gl=angle \
+            --codec h264 \
+            --log verbose
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Verify frame count and duration
+        run: |
+          ffprobe -hide_banner -v error \
+            -select_streams v:0 \
+            -show_entries stream=nb_frames,width,height,r_frame_rate,codec_name \
+            -show_entries format=duration \
+            -of default=noprint_wrappers=1 \
+            out/room-test.mp4
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: room-showcase-test
+          path: out/room-test.mp4
+          retention-days: 7

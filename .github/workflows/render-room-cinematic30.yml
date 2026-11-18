@@ -33,8 +33,7 @@ jobs:
           npx remotion render src/index.ts TestRoomCinematic30 \
             out/TestRoomCinematic30.mp4 \
             --props='{"quality":"${{ github.event.inputs.quality }}"}' \
-            --gl=swiftshader \
-            --chrome-mode=chrome-for-testing \
+            --gl=swangle \
             --codec h264 \
             --crf 18 \
             --log verbose

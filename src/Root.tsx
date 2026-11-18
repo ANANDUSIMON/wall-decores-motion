@@ -15,6 +15,7 @@ import { VectorShowcase } from './vectorshowcase/VectorShowcase';
 import { FPS as VSFPS, W as VSW, H as VSH, TOTAL as VSTOTAL } from './vectorshowcase/theme';
 import { RoomShowcase, ROOM_SHOWCASE_FPS, ROOM_SHOWCASE_DURATION } from './compositions/RoomShowcase';
 import { TestRoom3D } from './TestRoom3D';
+import { TestRoomCinematic30, ROOM_FPS, ROOM_DURATION } from './TestRoomCinematic30';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -124,5 +125,10 @@ export const RemotionRoot: React.FC = () => (
       width={1920}
       height={1080}
     />
+
+    {/* 30s cinematic 3D room — heavier Lambda smoke test with full lighting + post-FX */}
+    <Composition id="TestRoomCinematic30" component={TestRoomCinematic30}
+      durationInFrames={ROOM_DURATION} fps={ROOM_FPS} width={1920} height={1080}
+      defaultProps={{ quality: "full" }} />
   </>
 );

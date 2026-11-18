@@ -17,7 +17,7 @@ const useAssets = () => {
   useEffect(() => {
     Promise.all([
       new RGBELoader().loadAsync(staticFile("hdri/studio_small_03_1k.hdr")),
-      new THREE.TextureLoader().loadAsync(staticFile("art/yacth.png.png")),
+      new THREE.TextureLoader().loadAsync(staticFile("art/yacht.png")),
     ])
       .then(([hdri, painting]) => {
         hdri.mapping = THREE.EquirectangularReflectionMapping;

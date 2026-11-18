@@ -34,6 +34,7 @@ jobs:
             out/TestRoomCinematic30.mp4 \
             --props='{"quality":"${{ github.event.inputs.quality }}"}' \
             --gl=swiftshader \
+            --chrome-mode=chrome \
             --codec h264 \
             --crf 18 \
             --log verbose

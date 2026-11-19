@@ -16,6 +16,8 @@ import { FPS as VSFPS, W as VSW, H as VSH, TOTAL as VSTOTAL } from './vectorshow
 import { RoomShowcase, ROOM_SHOWCASE_FPS, ROOM_SHOWCASE_DURATION } from './compositions/RoomShowcase';
 import { TestRoom3D } from './TestRoom3D';
 import { TestRoomCinematic30, ROOM_FPS, ROOM_DURATION } from './TestRoomCinematic30';
+import { LastPiece } from './LastPiece/LastPiece';
+import { DURATION as LP_DURATION, FPS as LP_FPS } from './LastPiece/config';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -130,5 +132,23 @@ export const RemotionRoot: React.FC = () => (
     <Composition id="TestRoomCinematic30" component={TestRoomCinematic30}
       durationInFrames={ROOM_DURATION} fps={ROOM_FPS} width={1920} height={1080}
       defaultProps={{ quality: "full" }} />
+
+    {/* "The Last Piece" — 60s brand film, landscape + vertical */}
+    <Composition
+      id="LastPiece"
+      component={LastPiece}
+      durationInFrames={LP_DURATION}
+      fps={LP_FPS}
+      width={1920}
+      height={1080}
+    />
+    <Composition
+      id="LastPieceVertical"
+      component={LastPiece}
+      durationInFrames={LP_DURATION}
+      fps={LP_FPS}
+      width={1080}
+      height={1920}
+    />
   </>
 );

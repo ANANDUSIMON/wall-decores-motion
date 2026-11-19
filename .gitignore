@@ -1,3 +1,11 @@
 node_modules/
 out/
 .remotion/
+.env
+
+public/last-piece/*.jpg
+public/last-piece/*.jpeg
+public/last-piece/*.png
+public/last-piece/*.webp
+public/last-piece/*.mp4
+public/last-piece/*.mp3

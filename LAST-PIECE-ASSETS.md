@@ -50,6 +50,25 @@ realistic light where your canvas will be composited back.
 **Never let the AI paint your artwork.** The film always composites your real
 painting photo onto the wall, so the piece on screen is exactly the piece you sell.
 
+## Mastering the final render (manual step)
+
+No render pipeline for LastPiece is wired into this repo yet (`.github/workflows/render.yml`
+only renders the unrelated, audio-free Gallery Film). Until one exists, master the
+audio by hand right after whatever render produces `out/LastPiece.mp4`:
+
+```
+python3 master.py out/LastPiece.mp4 out/final.mp4
+```
+
+This runs two-pass EBU R128 to −14 LUFS / −1.0 dBTP via `ffmpeg-normalize`, then
+re-measures the result with an independent meter (`pyloudnorm`) rather than trusting
+the tool's own report. Deliver `out/final.mp4`, not the raw render — a single-pass
+`ffmpeg -af loudnorm=I=-14:TP=-1` drifts on material with a quiet opening, which this
+film has.
+
+Setup once: `pip install -r audio-requirements.txt` (needs `ffmpeg`/`ffprobe` on PATH;
+on Linux, Matchering also needs the system `libsndfile1` package).
+
 ## When you add a new room
 
 Each room needs a `rect` in `src/LastPiece/config.ts` — where the canvas sits, as

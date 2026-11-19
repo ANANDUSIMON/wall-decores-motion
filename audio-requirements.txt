@@ -1,0 +1,8 @@
+# Mastering + verification toolchain for Wall Decores films.
+#   pip install -r audio-requirements.txt
+ffmpeg-normalize>=1.45     # two-pass EBU R128 (wraps ffmpeg loudnorm correctly)
+pyloudnorm>=0.1.1          # independent loudness meter for verification
+soundfile>=0.12            # wav I/O (pulled in by matchering, pinned here too)
+matchering>=2.0            # reference mastering, for series consistency
+numpy>=1.24
+scipy>=1.10

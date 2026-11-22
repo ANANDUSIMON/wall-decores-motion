@@ -18,6 +18,9 @@ import { TestRoom3D } from './TestRoom3D';
 import { TestRoomCinematic30, ROOM_FPS, ROOM_DURATION } from './TestRoomCinematic30';
 import { LastPiece } from './LastPiece/LastPiece';
 import { DURATION as LP_DURATION, FPS as LP_FPS } from './LastPiece/config';
+import './Reel/fonts';
+import { Reel } from './Reel/Reel';
+import { DURATION as WR_DURATION, FPS as WR_FPS, W as WR_W, H as WR_H } from './Reel/config';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -149,6 +152,15 @@ export const RemotionRoot: React.FC = () => (
       fps={LP_FPS}
       width={1080}
       height={1920}
+    />
+    {/* 40s vertical brand reel — 2160x3840 60fps, beat-cut, dimension graphics, ElevenLabs audio */}
+    <Composition
+      id="WallDecoresReel"
+      component={Reel}
+      durationInFrames={WR_DURATION}
+      fps={WR_FPS}
+      width={WR_W}
+      height={WR_H}
     />
   </>
 );

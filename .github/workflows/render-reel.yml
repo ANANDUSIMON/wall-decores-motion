@@ -1,0 +1,105 @@
+name: Render WallDecoresReel (20-way free-tier split)
+
+on:
+  workflow_dispatch:
+
+env:
+  COMPOSITION: WallDecoresReel
+  SHARDS: 20
+  FRAMES_PER_SHARD: 120   # 20 x 120 = 2400 total frames
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ensure headless browser
+        run: npx remotion browser ensure
+
+      - name: Install Chrome runtime libs (safety net for ubuntu-latest)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            libnss3 libatk-bridge2.0-0 libgtk-3-0 libasound2t64 libasound2 \
+            fonts-liberation libgbm1 || true
+
+      - name: Render shard ${{ matrix.shard }}
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          START=$((SHARD * ${{ env.FRAMES_PER_SHARD }}))
+          END=$((START + ${{ env.FRAMES_PER_SHARD }} - 1))
+          echo "Rendering frames $START-$END"
+          npx remotion render "$COMPOSITION" "out/part-$(printf %02d $SHARD).mp4" \
+            --frames="${START}-${END}" \
+            --muted \
+            --codec=h264 \
+            --crf=16 \
+            --jpeg-quality=95 \
+            --concurrency=2
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: part-${{ matrix.shard }}
+          path: out/part-*.mp4
+          retention-days: 1
+
+  merge:
+    needs: render
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: parts
+
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
+      - name: Concat shards in numeric order
+        run: |
+          mkdir -p out
+          python3 - <<'PY'
+          import glob, re
+          files = glob.glob("parts/**/part-*.mp4", recursive=True)
+          files.sort(key=lambda f: int(re.search(r'part-(\d+)', f).group(1)))
+          assert len(files) == 20, f"expected 20 parts, found {len(files)}: {files}"
+          with open("out/concat.txt", "w") as fh:
+              for f in files:
+                  fh.write(f"file '{f}'\n")
+          PY
+          ffmpeg -y -f concat -safe 0 -i out/concat.txt -c copy out/video_only.mp4
+
+      - name: Mux in the mastered ElevenLabs audio
+        run: |
+          ffmpeg -y -i out/video_only.mp4 -i public/reel/audio/mix_master.wav \
+            -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 320k -t 40 \
+            -movflags +faststart \
+            out/wall-decores-reel-4k.mp4
+
+      - name: Verify
+        run: |
+          npx remotion ffprobe out/wall-decores-reel-4k.mp4 || \
+          ffprobe -hide_banner out/wall-decores-reel-4k.mp4
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wall-decores-reel-4k
+          path: out/wall-decores-reel-4k.mp4
+          retention-days: 7

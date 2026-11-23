@@ -18,6 +18,15 @@ import { TestRoom3D } from './TestRoom3D';
 import { TestRoomCinematic30, ROOM_FPS, ROOM_DURATION } from './TestRoomCinematic30';
 import { LastPiece } from './LastPiece/LastPiece';
 import { DURATION as LP_DURATION, FPS as LP_FPS } from './LastPiece/config';
+import './EyeGo/fonts';
+import { EyeGo } from './EyeGo/EyeGo';
+import { DURATION as EG_DURATION, FPS as EG_FPS, W as EG_W, H as EG_H } from './EyeGo/timeline';
+import { FinishingTouchCompositions } from './FinishingTouch/FinishingTouch';
+import './Reel/fonts';
+import { Reel } from './Reel/Reel';
+import { DURATION as WR_DURATION, FPS as WR_FPS, W as WR_W, H as WR_H } from './Reel/config';
+import { ThisOrThis } from './ToT/ToT';
+import { DURATION as TOT_DURATION, FPS as TOT_FPS, W as TOT_W, H as TOT_H } from './ToT/config';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -149,6 +158,36 @@ export const RemotionRoot: React.FC = () => (
       fps={LP_FPS}
       width={1080}
       height={1920}
+    />
+    {/* 47s explainer — "Where Does Your Eye Go?" (gaze dots, colour story, VO + score + SFX) */}
+    <Composition
+      id="EyeGo"
+      component={EyeGo}
+      durationInFrames={EG_DURATION}
+      fps={EG_FPS}
+      width={EG_W}
+      height={EG_H}
+    />
+    {/* 46s "The Finishing Touch" — vibrant vector room build-up → painting completes it (16:9 + 9:16) */}
+    <FinishingTouchCompositions />
+    {/* 40s vertical brand reel — 2160x3840 60fps, beat-cut, dimension graphics, ElevenLabs audio */}
+    <Composition
+      id="WallDecoresReel"
+      component={Reel}
+      durationInFrames={WR_DURATION}
+      fps={WR_FPS}
+      width={WR_W}
+      height={WR_H}
+    />
+    {/* 90s vertical reel — "This… or This?" v2, 2160x3840 60fps, room montage + colour-chip A/B */}
+    <Composition
+      id="ThisOrThis"
+      component={ThisOrThis}
+      durationInFrames={TOT_DURATION}
+      fps={TOT_FPS}
+      width={TOT_W}
+      height={TOT_H}
+      defaultProps={{ withAudio: true }}
     />
   </>
 );

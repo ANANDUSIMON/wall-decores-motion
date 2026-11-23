@@ -29,6 +29,46 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const SERIF = "Cormorant Garamond, serif";
 const SANS = "Inter, sans-serif";
 
+// ---------- cold-open hook ----------
+// Room 1 opens on the FINISHED wall — the painting already hung — then it whips off
+// the wall and leaves the bare wall the rest of the reel works from.
+// This lives inside room 1's existing opening seconds, so the 90.32s runtime and
+// every voiceover timestamp stay exactly where they were.
+const HOOK = {
+  hold: 0.95, // s · finished room on screen
+  rip: 0.6, // s · the painting accelerates up and out of frame
+  tail: 0.75, // s · hook line lingers over the bare wall
+  line: "Can you pick the right one?",
+};
+const HOOK_END = HOOK.hold + HOOK.rip;
+
+// Text leads the voice by this much so the eye lands as the ear does.
+const LEAD = 0.1;
+
+// Each painting carries its own hex in config.ts. Those are true pigment values, so some
+// (deep teal, oxblood) are far too dark to read as type. This lifts any of them to a fixed
+// brightness, keeping the hue so the text still belongs to the painting on screen.
+const liftColor = (hex: string, L = 0.66, minS = 0.6) => {
+  const n = parseInt(hex.slice(1), 16);
+  const r = ((n >> 16) & 255) / 255;
+  const g = ((n >> 8) & 255) / 255;
+  const b = (n & 255) / 255;
+  const mx = Math.max(r, g, b);
+  const mn = Math.min(r, g, b);
+  const d = mx - mn;
+  let h = 0;
+  if (d) h = mx === r ? ((g - b) / d + (g < b ? 6 : 0)) / 6 : mx === g ? ((b - r) / d + 2) / 6 : ((r - g) / d + 4) / 6;
+  const l0 = (mx + mn) / 2;
+  const s = Math.min(Math.max(d ? d / (1 - Math.abs(2 * l0 - 1)) : 0, minS), 0.95);
+  const c = (1 - Math.abs(2 * L - 1)) * s;
+  const x = c * (1 - Math.abs(((h * 6) % 2) - 1));
+  const m = L - c / 2;
+  const seg = Math.floor(h * 6) % 6;
+  const [rr, gg, bb] = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][seg];
+  const to = (v: number) => Math.round((v + m) * 255).toString(16).padStart(2, "0");
+  return `#${to(rr)}${to(gg)}${to(bb)}`;
+};
+
 // ---------- geometry ----------
 type Rect = { x: number; y: number; w: number; h: number };
 const rectOf = (room: Room, pl: Placement): Rect => {
@@ -343,22 +383,50 @@ const Caption: React.FC<{ t: number; top: number }> = ({ t, top }) => {
 };
 
 const TXT_SHADOW = "0 4px 24px rgba(0,0,0,0.70), 0 2px 6px rgba(0,0,0,0.50)";
+// White type stays white for legibility; the colour arrives as a soft halo around it,
+// so the text reads as lit by the painting rather than outlined.
+const glowShadow = (accent: string) =>
+  `0 0 70px ${accent}59, 0 0 26px ${accent}3D, 0 4px 24px rgba(0,0,0,0.78), 0 2px 6px rgba(0,0,0,0.55)`;
 
-const Heading: React.FC<{ kicker: string; line: string; lineStart: number; frame: number; chip?: { wall: string; art: string; text: string; o: number } }> = ({
-  kicker,
-  line,
-  lineStart,
-  frame,
-  chip,
-}) => {
+const Heading: React.FC<{
+  kicker: string;
+  line: string;
+  lineStart: number;
+  frame: number;
+  accent: string;
+  tintLine?: boolean;
+  chip?: { wall: string; art: string; text: string; o: number };
+}> = ({ kicker, line, lineStart, frame, accent, tintLine, chip }) => {
   const k = interpolate(frame, [0, 20], [0, 1], { ...clamp, easing: ease });
   const l = interpolate(frame, [lineStart, lineStart + 24], [0, 1], { ...clamp, easing: ease });
+  const rule = interpolate(frame, [lineStart + 10, lineStart + 38], [0, 1], { ...clamp, easing: ease });
   return (
     <div style={{ position: "absolute", left: 0, bottom: 860, width: W, textAlign: "center", color: "#FFFFFF" }}>
-      <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 58, letterSpacing: 10, textTransform: "uppercase", opacity: k, textShadow: TXT_SHADOW }}>{kicker}</div>
-      <div key={line} style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 600, fontSize: 240, lineHeight: 1.04, marginTop: 18, opacity: l, translate: `0 ${(1 - l) * 40}px`, textShadow: TXT_SHADOW }}>
+      {/* Every room is a muted version of its painting's palette, so accent-on-wall is always
+          low contrast. The label rides a dark pill, which lets the colour run bright and still read. */}
+      <div style={{ opacity: k }}>
+        <div
+          style={{
+            display: "inline-block",
+            padding: "16px 40px",
+            borderRadius: 60,
+            background: "rgba(10,7,5,0.76)",
+            border: `3px solid ${accent}66`,
+            fontFamily: SANS,
+            fontWeight: 700,
+            fontSize: 58,
+            letterSpacing: 10,
+            textTransform: "uppercase",
+            color: accent,
+          }}
+        >
+          {kicker}
+        </div>
+      </div>
+      <div key={line} style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 600, fontSize: 240, lineHeight: 1.04, marginTop: 22, color: "#FFFFFF", opacity: l, translate: `0 ${(1 - l) * 40}px`, textShadow: glowShadow(accent) }}>
         {line}
       </div>
+      <div style={{ margin: "16px auto 0", width: (tintLine ? 420 : 300) * rule, height: 10, borderRadius: 6, background: accent, opacity: l, boxShadow: `0 0 34px ${accent}, 0 0 10px rgba(0,0,0,0.5)` }} />
       {chip && chip.o > 0 ? (
         <div
           style={{
@@ -412,7 +480,15 @@ const RoomScene: React.FC<{ room: Room; index: number; tl: RoomTL }> = ({ room, 
   const ry = interpolate(frame, [0, f(len)], [5.5, -4.5], { ...clamp, easing: easeIO });
   const rx = interpolate(frame, [0, f(len)], [2.2, 0.6], { ...clamp, easing: easeIO });
   const sc = interpolate(frame, [0, f(len)], room.cam ?? [1.12, 1.2], { ...clamp, easing: easeIO });
-  const fadeIn = interpolate(frame, [0, 12], [0, 1], clamp);
+
+  // Cold open: room 1 starts on the finished wall, no fade from black — frame 0 must
+  // already be the painting, because that is what stops the scroll.
+  const isHook = index === 0;
+  const ripP = isHook ? prog(frame, HOOK.hold, HOOK.rip, Easing.in(Easing.cubic)) : 0;
+  const inHook = isHook && t < HOOK_END;
+  const ripT = `translate(${ripP * 70}px, ${-ripP * H * 0.95}px) rotate(${-ripP * 7}deg) scale(${1 + ripP * 0.07})`;
+  const ripO = interpolate(ripP, [0, 0.78, 1], [1, 1, 0], clamp);
+  const fadeIn = isHook ? 1 : interpolate(frame, [0, 12], [0, 1], clamp);
   const ox = rA.x + rA.w / 2;
   const oy = rA.y + rA.h / 2;
   const origin: [number, number] = [ox, oy];
@@ -420,17 +496,39 @@ const RoomScene: React.FC<{ room: Room; index: number; tl: RoomTL }> = ({ room, 
   const fgZ = FG_DEPTH_IN * room.ppi;
 
   const ink = inkOf(room);
-  let line = index === 0 && t < TL.vo[1].at ? "Find the painting that belongs." : room.emptyLine;
-  let lineStart = index === 0 && t < TL.vo[1].at ? f(0.4) : index === 0 ? f(rel(TL.vo[1].at)) : f(0.3);
+  let line: string;
+  let lineStart: number;
+  let tintLine = false;
+  if (isHook && t < HOOK_END + HOOK.tail) {
+    line = HOOK.line;
+    lineStart = f(0.12);
+  } else if (index === 0 && t < room.lineAt) {
+    line = "Find the painting that belongs.";
+    lineStart = f(HOOK_END + HOOK.tail);
+  } else {
+    // stays invisible until room.lineAt, so the words land with the voice that speaks them
+    line = room.emptyLine;
+    lineStart = f(rel(room.lineAt));
+  }
+  if (room.then && t >= room.then.at) {
+    line = room.then.text;
+    lineStart = f(rel(room.then.at));
+  }
   if (t >= tl.wipeA) {
     line = "This…";
     lineStart = f(rel(tl.wipeA));
+    tintLine = true;
   }
   if (t >= tl.wipeB) {
     line = "…or this?";
     lineStart = f(rel(tl.wipeB));
+    tintLine = true;
   }
   const cur = t >= tl.wipeB ? room.B : room.A;
+  const accent = liftColor(PAINTINGS[cur.p].hex);
+  // during the cold open the painting is already hung and fully painted
+  const hangEff = inHook ? 1 : hang;
+  const pAEff = inHook ? 1 : pA;
   const chipO =
     t < tl.wipeA + 0.8 ? 0 : t < tl.wipeB ? prog(frame, rel(tl.wipeA + 0.8), 0.5) : prog(frame, rel(tl.wipeB + 0.8), 0.5);
   const canvasWH = { w: r.w, h: r.h };
@@ -453,18 +551,22 @@ const RoomScene: React.FC<{ room: Room; index: number; tl: RoomTL }> = ({ room, 
           {/* wall plane */}
           <Layer z={0} origin={origin}>
             <Img src={staticFile(room.img)} style={{ position: "absolute", width: W, height: H }} />
-            <FrameShadow r={r} ppi={room.ppi} depth={depth} appear={hang} />
+            {/* the cast shadow unsticks fast as the painting lifts — leaving it behind
+                would read as a ghost rectangle on the wall */}
+            <FrameShadow r={r} ppi={room.ppi} depth={depth} appear={hangEff * interpolate(ripP, [0, 0.02], [1, 0], clamp)} />
             <Outline r={rA} ppi={room.ppi} ink={ink} p={outP} fade={hang} />
           </Layer>
           {/* the framed painting, standing off the wall */}
           <Layer z={0.01} origin={origin}>
-            <FrameBox r={r} ppi={room.ppi} depth={depth} appear={hang}>
-              <Img src={staticFile("tot/img/linen.jpg")} style={{ position: "absolute", width: "100%", height: "100%", objectFit: "cover" }} />
-              <Canvas pl={room.A} p={pA} seed={index * 7 + 1} {...canvasWH} />
-              <Canvas pl={room.B} p={pB} seed={index * 7 + 4} {...canvasWH} />
-              {/* light falls from the window side */}
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(100deg, rgba(255,244,225,0.10), rgba(0,0,0,0) 45%, rgba(0,0,0,0.16))", boxShadow: "inset 0 0 22px rgba(0,0,0,0.35)" }} />
-            </FrameBox>
+            <div style={{ position: "absolute", inset: 0, transform: ripT, opacity: ripO, transformOrigin: `${ox}px ${oy}px` }}>
+              <FrameBox r={r} ppi={room.ppi} depth={depth} appear={hangEff}>
+                <Img src={staticFile("tot/img/linen.jpg")} style={{ position: "absolute", width: "100%", height: "100%", objectFit: "cover" }} />
+                <Canvas pl={room.A} p={pAEff} seed={index * 7 + 1} {...canvasWH} />
+                <Canvas pl={room.B} p={pB} seed={index * 7 + 4} {...canvasWH} />
+                {/* light falls from the window side */}
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(100deg, rgba(255,244,225,0.10), rgba(0,0,0,0) 45%, rgba(0,0,0,0.16))", boxShadow: "inset 0 0 22px rgba(0,0,0,0.35)" }} />
+              </FrameBox>
+            </div>
           </Layer>
           <Layer z={depth + 24} origin={origin}>
             <PaintingDims room={room} r={r} wIn={wIn} hIn={hIn} bottomIn={bIn} p={dimsP} />
@@ -492,6 +594,8 @@ const RoomScene: React.FC<{ room: Room; index: number; tl: RoomTL }> = ({ room, 
         line={line}
         lineStart={lineStart}
         frame={frame}
+        accent={accent}
+        tintLine={tintLine}
         chip={{ wall: room.wallHex, art: PAINTINGS[cur.p].hex, text: `${PAINTINGS[cur.p].name} · ${cur.reason}`, o: chipO }}
       />
     </AbsoluteFill>
@@ -598,8 +702,9 @@ const Montage: React.FC = () => {
 const Outro: React.FC = () => {
   const frame = useCurrentFrame();
   const ctaAt = TL.vo[17].at - TL.outro.start;
-  const word = prog(frame, 0.3, 1.1);
-  const tag = prog(frame, 1.2, 0.8);
+  // VO16 "Wall Decores. | Art that completes the room." — each line lands on its words
+  const word = prog(frame, TL.vo[16].at - TL.outro.start - LEAD, 1.1);
+  const tag = prog(frame, TL.vo[16].at + 1.15 - TL.outro.start - LEAD, 0.8);
   const cta = prog(frame, ctaAt, 0.7);
   const info = prog(frame, ctaAt + 1.0, 0.8);
   return (

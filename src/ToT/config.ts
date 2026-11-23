@@ -35,6 +35,12 @@ export type Room = {
   id: string;
   label: string;
   emptyLine: string; // headline while the wall is bare
+  // Absolute second the bare-wall headline lands. It echoes words the voiceover speaks, so it is
+  // cued to the moment those words are said — not to the start of the room. Measured by where the
+  // phrase sits inside its voice line in timeline.ts, set ~0.15s early so the text leads the voice.
+  lineAt: number;
+  // Optional second bare-wall beat, for a voice line that turns halfway ("Lovely light… | but that wall?").
+  then?: { at: number; text: string };
   img: string;
   overlay?: { file: string; x: number; y: number; w: number; h: number };
   wallHex: string;
@@ -59,7 +65,9 @@ export const ROOMS: Room[] = [
   {
     id: "R4",
     label: "Oat living room",
-    emptyLine: "Lovely light… empty wall.",
+    emptyLine: "Lovely light…",
+    lineAt: 7.75, // voice says these words here
+    then: { at: 10.37, text: "…but an empty wall." }, // VO01 "It feels a little empty" starts 10.47s
     img: "tot/img/R4.jpg",
     wallHex: "#C5A686",
     ink: "dark",
@@ -75,6 +83,7 @@ export const ROOMS: Room[] = [
     id: "R2",
     label: "Sage-olive living room",
     emptyLine: "Calm… but quiet.",
+    lineAt: 31.65, // voice says these words here
     img: "tot/img/R2.jpg",
     wallHex: "#928A70",
     ink: "light",
@@ -90,6 +99,7 @@ export const ROOMS: Room[] = [
     id: "R1",
     label: "Golden living room",
     emptyLine: "A bright room needs depth.",
+    lineAt: 44.2, // voice says these words here
     img: "tot/img/R1.jpg",
     wallHex: "#EFD39F",
     ink: "dark",
@@ -105,6 +115,7 @@ export const ROOMS: Room[] = [
     id: "R3",
     label: "Terracotta dining room",
     emptyLine: "Go the opposite way.",
+    lineAt: 59.2, // voice says these words here
     img: "tot/img/R3.jpg",
     wallHex: "#C0713B",
     ink: "dark",

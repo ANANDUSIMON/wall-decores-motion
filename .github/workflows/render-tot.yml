@@ -111,7 +111,23 @@ jobs:
             -c:a copy -movflags +faststart \
             out/this-or-this-IG-1080p60.mp4
 
-      # 4) Cover image — 1080x1920 JPG to pick as the Reel cover
+# 4) WATCH ON A LOW-SPEC PC — 1080x1920, 30 fps, light + smooth to decode.
+      # The 4K master won't play on a 4GB i3: 4K decode is too heavy, and that's the
+      # resolution, not the format — nothing re-wraps around it. This is the file to
+      # double-click. 1080p30 H.264 is hardware-decoded on any Intel from the last decade,
+      # keyframes every 0.5s so scrubbing is snappy, ~10 Mbps so a slow disk keeps up.
+      # If it STILL stutters, change scale=1080:1920 to scale=720:1280 for a 720p version.
+      - name: PC playback copy — 1080p30 (double-click this)
+        run: |
+          ffmpeg -y -i out/this-or-this-4k-master.mp4 \
+            -vf "fps=30,scale=1080:1920:flags=lanczos,format=yuv420p" \
+            -c:v libx264 -preset medium -profile:v high -level:v 4.0 \
+            -crf 20 -maxrate 10M -bufsize 16M \
+            -g 15 -keyint_min 15 \
+            -c:a aac -b:a 160k -movflags +faststart \
+            out/this-or-this-PC-watch-1080p30.mp4
+
+      # 5) Cover image — 1080x1920 JPG to pick as the Reel cover
       - name: Reel cover (1080x1920)
         run: |
           ffmpeg -y -ss $COVER_AT -i out/this-or-this-4k-master.mp4 -frames:v 1 -update 1 \
@@ -150,6 +166,7 @@ jobs:
           path: |
             out/this-or-this-IG-1080p30.mp4
             out/this-or-this-IG-1080p60.mp4
+            out/this-or-this-PC-watch-1080p30.mp4
             out/this-or-this-cover-1080x1920.jpg
           retention-days: 14
       - uses: actions/upload-artifact@v4

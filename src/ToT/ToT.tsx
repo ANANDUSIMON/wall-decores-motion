@@ -486,8 +486,13 @@ const RoomScene: React.FC<{ room: Room; index: number; tl: RoomTL }> = ({ room, 
   const isHook = index === 0;
   const ripP = isHook ? prog(frame, HOOK.hold, HOOK.rip, Easing.in(Easing.cubic)) : 0;
   const inHook = isHook && t < HOOK_END;
-  const ripT = `translate(${ripP * 70}px, ${-ripP * H * 0.95}px) rotate(${-ripP * 7}deg) scale(${1 + ripP * 0.07})`;
-  const ripO = interpolate(ripP, [0, 0.78, 1], [1, 1, 0], clamp);
+  // The rip transform must ONLY exist during the hook window. After it, ripP clamps at 1
+  // forever — so if we kept applying it, the painting would stay flung off-screen for the
+  // whole room and the real reveal (hang / pA) would be invisible. Past the hook it is
+  // identity + opaque, and visibility is handed back to hangEff / pAEff.
+  const ripActive = isHook && t < HOOK_END + 0.05;
+  const ripT = ripActive ? `translate(${ripP * 70}px, ${-ripP * H * 0.95}px) rotate(${-ripP * 7}deg) scale(${1 + ripP * 0.07})` : "none";
+  const ripO = ripActive ? interpolate(ripP, [0, 0.78, 1], [1, 1, 0], clamp) : 1;
   const fadeIn = isHook ? 1 : interpolate(frame, [0, 12], [0, 1], clamp);
   const ox = rA.x + rA.w / 2;
   const oy = rA.y + rA.h / 2;

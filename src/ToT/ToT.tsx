@@ -45,6 +45,24 @@ const HOOK_END = HOOK.hold + HOOK.rip;
 // Text leads the voice by this much so the eye lands as the ear does.
 const LEAD = 0.1;
 
+// ---------- layout bands: why text used to overlap ----------
+// Two text systems with different anchors both landed in the lower third. The heading
+// block is FRAME-anchored (bottom: BAND.igSafe, grows upward, height changes with how
+// many lines the headline wraps to). The dimension labels are ROOM-GEOMETRY-anchored
+// (floorY - furn.topIn * ppi), which moves with each room's calibration. Nothing
+// reconciled them, so the sofa-width label sat inside the heading block in all 4 rooms.
+// Measured: only 198-385px of clear wall exists between a painting's bottom edge and its
+// sofa dimension line — not enough to hold both systems at once. So they are separated in
+// TIME: while the furniture dims are up the heading collapses to its room-label pill.
+// BAND_DIMS_FLOOR_Y is a hard backstop so no label can ever re-enter the heading band,
+// whatever a future room's calibration turns out to be.
+const BAND = {
+  igSafe: 860, // px from frame bottom — Instagram's caption/username/audio bar sits here
+  pill: 150, // height of the collapsed heading (the room-label pill on its own)
+  gap: 60, // minimum clear space between the dims band and the heading band
+};
+const BAND_DIMS_FLOOR_Y = H - BAND.igSafe - BAND.pill - BAND.gap;
+
 // Each painting carries its own hex in config.ts. Those are true pigment values, so some
 // (deep teal, oxblood) are far too dark to read as type. This lifts any of them to a fixed
 // brightness, keeping the hue so the text still belongs to the painting on screen.
@@ -211,7 +229,7 @@ const Label: React.FC<{ x: number; y: number; text: string; ink: Ink; o: number;
   );
 };
 
-const HDim: React.FC<{ x0: number; x1: number; y: number; refY?: number; text: string; ink: Ink; p: number }> = ({ x0, x1, y, refY, text, ink, p }) => {
+const HDim: React.FC<{ x0: number; x1: number; y: number; refY?: number; text: string; ink: Ink; p: number; labelDy?: number }> = ({ x0, x1, y, refY, text, ink, p, labelDy = 0 }) => {
   if (p <= 0) return null;
   const mid = (x0 + x1) / 2;
   const half = ((x1 - x0) / 2) * Math.min(1, p / 0.7);
@@ -238,12 +256,14 @@ const HDim: React.FC<{ x0: number; x1: number; y: number; refY?: number; text: s
     <g>
       {lines(ink.under, 4)}
       {lines(ink.line, 0)}
-      <Label x={mid} y={y} text={text} ink={ink} o={lo} />
+      {/* if the label had to be lifted clear of the heading band, a leader keeps it attached */}
+      {labelDy < -20 ? <line x1={mid} y1={y - 8} x2={mid} y2={y + labelDy + 40} stroke={ink.line} strokeWidth={3} strokeDasharray="12 14" opacity={lo * 0.85} /> : null}
+      <Label x={mid} y={y + labelDy} text={text} ink={ink} o={lo} />
     </g>
   );
 };
 
-const VDim: React.FC<{ x: number; y0: number; y1: number; refX?: number; text: string; ink: Ink; p: number; rotate?: boolean; labelDx?: number }> = ({
+const VDim: React.FC<{ x: number; y0: number; y1: number; refX?: number; text: string; ink: Ink; p: number; rotate?: boolean; labelDx?: number; labelDy?: number }> = ({
   x,
   y0,
   y1,
@@ -253,6 +273,7 @@ const VDim: React.FC<{ x: number; y0: number; y1: number; refX?: number; text: s
   p,
   rotate = true,
   labelDx = 0,
+  labelDy = 0,
 }) => {
   if (p <= 0) return null;
   const mid = (y0 + y1) / 2;
@@ -280,7 +301,7 @@ const VDim: React.FC<{ x: number; y0: number; y1: number; refX?: number; text: s
     <g>
       {lines(ink.under, 4)}
       {lines(ink.line, 0)}
-      <Label x={x + labelDx} y={mid} text={text} ink={ink} o={lo} rotate={rotate} />
+      <Label x={x + labelDx} y={mid + labelDy} text={text} ink={ink} o={lo} rotate={rotate} />
     </g>
   );
 };
@@ -319,11 +340,33 @@ const FurnDims: React.FC<{ room: Room; r: Rect; wIn: number; bottomIn: number; p
   const clearIn = Math.round(bottomIn - room.furn.topIn);
   const ratio = room.furn.kind === "sofa" ? Math.round((wIn / room.furn.widthIn) * 100) : null;
   const cx = r.x + r.w / 2;
+  // Lines stay on the furniture they measure; only the LABELS are clamped out of the
+  // heading band, with a leader drawn back to the line when one has to move.
+  const clearMidY = (r.y + r.h + pad + furnTopY) / 2;
+  const sofaLineY = furnTopY + 70;
   return (
     <svg width={W} height={H} style={{ position: "absolute", left: 0, top: 0, overflow: "visible" }}>
-      <VDim x={cx} y0={r.y + r.h + pad} y1={furnTopY} text={`${clearIn}" ${room.furn.kind === "sofa" ? "above the sofa" : "above the table"}`} ink={ink} p={st(0)} rotate={false} labelDx={0} />
+      <VDim
+        x={cx}
+        y0={r.y + r.h + pad}
+        y1={furnTopY}
+        text={`${clearIn}" ${room.furn.kind === "sofa" ? "above the sofa" : "above the table"}`}
+        ink={ink}
+        p={st(0)}
+        rotate={false}
+        labelDx={0}
+        labelDy={Math.min(clearMidY, BAND_DIMS_FLOOR_Y) - clearMidY}
+      />
       {room.furn.kind === "sofa" && room.furn.x0 !== undefined && room.furn.x1 !== undefined ? (
-        <HDim x0={room.furn.x0} x1={room.furn.x1} y={furnTopY + 70} text={`Sofa ${room.furn.widthIn}" · art = ${ratio}% of it`} ink={ink} p={st(1)} />
+        <HDim
+          x0={room.furn.x0}
+          x1={room.furn.x1}
+          y={sofaLineY}
+          text={`Sofa ${room.furn.widthIn}" · art = ${ratio}% of it`}
+          ink={ink}
+          p={st(1)}
+          labelDy={Math.min(sofaLineY, BAND_DIMS_FLOOR_Y) - sofaLineY}
+        />
       ) : null}
     </svg>
   );
@@ -395,8 +438,9 @@ const Heading: React.FC<{
   frame: number;
   accent: string;
   tintLine?: boolean;
+  collapsed?: boolean;
   chip?: { wall: string; art: string; text: string; o: number };
-}> = ({ kicker, line, lineStart, frame, accent, tintLine, chip }) => {
+}> = ({ kicker, line, lineStart, frame, accent, tintLine, collapsed, chip }) => {
   const k = interpolate(frame, [0, 20], [0, 1], { ...clamp, easing: ease });
   const l = interpolate(frame, [lineStart, lineStart + 24], [0, 1], { ...clamp, easing: ease });
   const rule = interpolate(frame, [lineStart + 10, lineStart + 38], [0, 1], { ...clamp, easing: ease });
@@ -423,11 +467,15 @@ const Heading: React.FC<{
           {kicker}
         </div>
       </div>
+      {collapsed ? null : (
       <div key={line} style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 600, fontSize: 240, lineHeight: 1.04, marginTop: 22, color: "#FFFFFF", opacity: l, translate: `0 ${(1 - l) * 40}px`, textShadow: glowShadow(accent) }}>
         {line}
       </div>
+      )}
+      {collapsed ? null : (
       <div style={{ margin: "16px auto 0", width: (tintLine ? 420 : 300) * rule, height: 10, borderRadius: 6, background: accent, opacity: l, boxShadow: `0 0 34px ${accent}, 0 0 10px rgba(0,0,0,0.5)` }} />
-      {chip && chip.o > 0 ? (
+      )}
+      {chip && chip.o > 0 && !collapsed ? (
         <div
           style={{
             marginTop: 22,
@@ -471,6 +519,13 @@ const RoomScene: React.FC<{ room: Room; index: number; tl: RoomTL }> = ({ room, 
   const pB = prog(frame, rel(tl.wipeB), WIPE, easeIO);
   const morph = prog(frame, rel(tl.wipeB), WIPE, easeIO);
   const dimsP = interpolate(frame, [f(rel(tl.dims)), f(rel(tl.dims) + 1.6)], [0, 1], clamp);
+  // The furniture dims (clearance + sofa width) share the lower third with the heading
+  // block, and the frame has no room for both. They own that band only between tl.dims
+  // and just before painting B wipes in; the heading collapses to its pill meanwhile.
+  // A and B are the same size in every room, so these values never differ between them.
+  const furnDimsP =
+    dimsP * (1 - interpolate(frame, [f(rel(tl.wipeB) - 0.9), f(rel(tl.wipeB) - 0.3)], [0, 1], clamp));
+  const headingCollapsed = furnDimsP > 0.04;
   const r = mixRect(rA, rB, morph);
   const wIn = lerp(room.A.wIn, room.B.wIn, morph);
   const hIn = lerp(room.A.hIn, room.B.hIn, morph);
@@ -590,7 +645,7 @@ const RoomScene: React.FC<{ room: Room; index: number; tl: RoomTL }> = ({ room, 
             />
           </Layer>
           <Layer z={fgZ + 40} origin={origin}>
-            <FurnDims room={room} r={r} wIn={wIn} bottomIn={bIn} p={dimsP} />
+            <FurnDims room={room} r={r} wIn={wIn} bottomIn={bIn} p={furnDimsP} />
           </Layer>
         </div>
       </AbsoluteFill>
@@ -601,6 +656,7 @@ const RoomScene: React.FC<{ room: Room; index: number; tl: RoomTL }> = ({ room, 
         frame={frame}
         accent={accent}
         tintLine={tintLine}
+        collapsed={headingCollapsed}
         chip={{ wall: room.wallHex, art: PAINTINGS[cur.p].hex, text: `${PAINTINGS[cur.p].name} · ${cur.reason}`, o: chipO }}
       />
     </AbsoluteFill>

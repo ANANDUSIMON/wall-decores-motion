@@ -7,9 +7,25 @@ on:
         description: Path to the script text file (repo-relative)
         required: true
       voice:
-        description: Kokoro voice id (e.g. af_heart, af_bella, am_michael, bm_george)
+        description: Kokoro voice id (e.g. af_heart, af_bella, bf_emma, bm_george)
         required: false
         default: af_heart
+      voice2:
+        description: Optional second voice to blend in (leave blank for a single voice)
+        required: false
+        default: ""
+      blend:
+        description: Blend weight for voice2 (0 = all voice, 1 = all voice2)
+        required: false
+        default: "0.5"
+      speed:
+        description: Speaking speed
+        required: false
+        default: "0.94"
+      preset:
+        description: Mastering preset (natural, warm, bright, broadcast)
+        required: false
+        default: natural
       out_path:
         description: Output WAV path (repo-relative)
         required: false
@@ -30,14 +46,18 @@ jobs:
         run: npm ci || npm install
 
       # ffmpeg ships preinstalled on ubuntu-latest runners — the mastering
-      # pass in generate.mjs needs it on PATH, nothing to install here.
+      # pass (and voice blending, when voice2 is set) in generate.mjs needs
+      # it on PATH, nothing to install here.
       - name: Generate voiceover (mastered + raw)
         id: generate
         run: |
-          node scripts/voiceover/generate.mjs \
-            --file "${{ inputs.script_file }}" \
-            --voice "${{ inputs.voice }}" \
-            --out "${{ inputs.out_path }}"
+          ARGS=(--file "${{ inputs.script_file }}" --voice "${{ inputs.voice }}" \
+                --speed "${{ inputs.speed }}" --preset "${{ inputs.preset }}" \
+                --out "${{ inputs.out_path }}")
+          if [ -n "${{ inputs.voice2 }}" ]; then
+            ARGS+=(--voice2 "${{ inputs.voice2 }}" --blend "${{ inputs.blend }}")
+          fi
+          node scripts/voiceover/generate.mjs "${ARGS[@]}"
           echo "raw_path=$(echo '${{ inputs.out_path }}' | sed 's/\.wav$/.raw.wav/')" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4

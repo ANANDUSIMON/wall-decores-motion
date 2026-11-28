@@ -29,15 +29,21 @@ jobs:
       - name: Install dependencies
         run: npm ci || npm install
 
-      - name: Generate voiceover
+      # ffmpeg ships preinstalled on ubuntu-latest runners — the mastering
+      # pass in generate.mjs needs it on PATH, nothing to install here.
+      - name: Generate voiceover (mastered + raw)
+        id: generate
         run: |
           node scripts/voiceover/generate.mjs \
             --file "${{ inputs.script_file }}" \
             --voice "${{ inputs.voice }}" \
             --out "${{ inputs.out_path }}"
+          echo "raw_path=$(echo '${{ inputs.out_path }}' | sed 's/\.wav$/.raw.wav/')" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
         with:
           name: voiceover-wav
-          path: ${{ inputs.out_path }}
+          path: |
+            ${{ inputs.out_path }}
+            ${{ steps.generate.outputs.raw_path }}
           retention-days: 7

@@ -1,0 +1,37 @@
+{
+  "left_corner": {
+    "note": "Painting goes on the sage green wall, right of centre",
+    "x": 480,
+    "y": 280,
+    "width": 340,
+    "height": 420,
+    "perspective": {
+      "note": "Slight left-wall perspective — left edge slightly shorter",
+      "topLeft": [-4, 0],
+      "topRight": [0, 0],
+      "bottomLeft": [-4, -6],
+      "bottomRight": [0, 0]
+    }
+  },
+  "closeup": {
+    "note": "Painting dominates the close-up wall — centred, large",
+    "x": 220,
+    "y": 340,
+    "width": 640,
+    "height": 790
+  },
+  "right_angle": {
+    "note": "Painting on the same wall seen from front-right",
+    "x": 280,
+    "y": 300,
+    "width": 380,
+    "height": 470,
+    "perspective": {
+      "note": "Front-right angle — right edge slightly shorter",
+      "topLeft": [0, 0],
+      "topRight": [6, 0],
+      "bottomLeft": [0, 0],
+      "bottomRight": [6, -8]
+    }
+  }
+}

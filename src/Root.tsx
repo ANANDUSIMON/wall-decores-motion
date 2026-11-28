@@ -23,6 +23,8 @@ import { Reel } from './Reel/Reel';
 import { DURATION as WR_DURATION, FPS as WR_FPS, W as WR_W, H as WR_H } from './Reel/config';
 import { ThisOrThis } from './ToT/ToT';
 import { DURATION as TOT_DURATION, FPS as TOT_FPS, W as TOT_W, H as TOT_H } from './ToT/config';
+import { ParallaxRoom } from './ParallaxRoom';
+import { DURATION_FRAMES as PR_DURATION, FPS as PR_FPS, WIDTH as PR_W, HEIGHT as PR_H } from './ParallaxRoom/timeline';
 
 /**
  * Each shot is registered as its own composition as well as part of the
@@ -173,6 +175,15 @@ export const RemotionRoot: React.FC = () => (
       width={TOT_W}
       height={TOT_H}
       defaultProps={{ withAudio: true }}
+    />
+    {/* 18s vertical reel — "Parallax Room", 2160x3840 30fps, 2.5D depth-layer camera illusion */}
+    <Composition
+      id="ParallaxRoom"
+      component={ParallaxRoom}
+      durationInFrames={PR_DURATION}
+      fps={PR_FPS}
+      width={PR_W}
+      height={PR_H}
     />
   </>
 );

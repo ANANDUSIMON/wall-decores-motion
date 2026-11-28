@@ -1,0 +1,145 @@
+name: Render Parallax Room — 4K master + Instagram upload
+
+on:
+  workflow_dispatch:
+
+env:
+  COMPOSITION: ParallaxRoom
+  FRAMES_PER_SHARD: 27 # 20 x 27 = 540 frames = 18.0s @ 30fps
+  LAST_FRAME: 539
+  DURATION: "18.0"
+  COVER_AT: "7.50" # seconds — close-up scene, painting large, lit by the raking light sweep
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx remotion browser ensure
+      - name: Chrome runtime libs (safety net)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libnss3 libatk-bridge2.0-0 libgtk-3-0 libgbm1 fonts-liberation libasound2t64 || sudo apt-get install -y -qq libasound2 || true
+      - name: Render shard ${{ matrix.shard }} (muted — audio is muxed once in the merge job)
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          START=$((SHARD * FRAMES_PER_SHARD))
+          END=$((START + FRAMES_PER_SHARD - 1)); if [ $END -gt $LAST_FRAME ]; then END=$LAST_FRAME; fi
+          echo "frames $START-$END"
+          mkdir -p out
+          npx remotion render "$COMPOSITION" "out/part-$(printf %02d $SHARD).mp4" \
+            --frames="${START}-${END}" --muted --codec=h264 --crf=18 \
+            --pixel-format=yuv420p --concurrency=2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: parallax-room-part-${{ matrix.shard }}
+          path: out/part-*.mp4
+          retention-days: 2
+
+  merge:
+    needs: render
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: parallax-room-part-*
+          path: parts
+          merge-multiple: true
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
+      - name: Join the 20 parts in order (concat demuxer, -c copy — no re-encode)
+        run: |
+          mkdir -p out
+          python3 - <<'PY'
+          import glob, os, re
+          files = sorted(glob.glob("parts/**/part-*.mp4", recursive=True),
+                         key=lambda f: int(re.search(r"part-(\d+)", f).group(1)))
+          assert len(files) == 20, f"expected 20 parts, found {len(files)}"
+          open("out/concat.txt", "w").write("".join(f"file '{os.path.abspath(f)}'\n" for f in files))
+          PY
+          ffmpeg -y -f concat -safe 0 -i out/concat.txt -c copy out/video_only.mp4
+
+      # Audio is muxed in exactly once, here — never regenerated per shard, and
+      # never touched to "fix" a visual problem. Today that's the silent
+      # placeholder; once the real mastered mix lands at this same path, this
+      # step needs no change.
+      - name: 4K master (mux public/parallax-room/audio/mix.wav, -c:v copy)
+        run: |
+          ffmpeg -y -i out/video_only.mp4 -i public/parallax-room/audio/mix.wav \
+            -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 192k -t $DURATION -movflags +faststart \
+            out/parallax-room-4k-master.mp4
+
+      # Instagram plays Reels at 1080x1920 and re-encodes everything; doing the
+      # 4K -> 1080 downscale ourselves (Lanczos, supersampled) beats letting
+      # Instagram's scaler do it. Spec: H.264 High profile, progressive,
+      # CABAC, 2 consecutive B-frames, closed GOP at half the frame rate,
+      # 4:2:0, BT.709, AAC stereo.
+      - name: Instagram upload — 1080p30
+        run: |
+          ffmpeg -y -i out/parallax-room-4k-master.mp4 \
+            -vf "scale=1080:1920:flags=lanczos+accurate_rnd+full_chroma_int,format=yuv420p" \
+            -c:v libx264 -preset slow -profile:v high -level:v 4.2 \
+            -crf 16 -maxrate 14M -bufsize 28M \
+            -g 15 -keyint_min 15 -sc_threshold 0 -bf 2 -b_strategy 0 \
+            -x264-params "open-gop=0:cabac=1:aq-mode=3" \
+            -colorspace bt709 -color_primaries bt709 -color_trc bt709 -color_range tv \
+            -c:a aac -b:a 192k -movflags +faststart \
+            out/parallax-room-IG-1080p30.mp4
+
+      - name: Cover image (1080x1920 JPG)
+        run: |
+          ffmpeg -y -ss $COVER_AT -i out/parallax-room-4k-master.mp4 -frames:v 1 -update 1 \
+            -vf "scale=1080:1920:flags=lanczos" -q:v 1 out/parallax-room-cover-1080x1920.jpg
+
+      - name: Verify the Instagram upload matches spec (fails the run on a miss)
+        run: |
+          python3 - <<'PY'
+          import json, subprocess, sys
+          def probe(f):
+              return json.loads(subprocess.check_output(["ffprobe","-v","error","-show_streams","-show_format","-of","json",f]))
+          p = probe("out/parallax-room-IG-1080p30.mp4")
+          v = [s for s in p["streams"] if s["codec_type"] == "video"][0]
+          a = [s for s in p["streams"] if s["codec_type"] == "audio"][0]
+          dur = float(p["format"]["duration"]); size = int(p["format"]["size"]) / 1e6
+          checks = {
+              "1080x1920": (v["width"], v["height"]) == (1080, 1920),
+              "h264 High": v["codec_name"] == "h264" and v.get("profile") == "High",
+              "fps 30/1": v["r_frame_rate"] == "30/1",
+              "yuv420p": v["pix_fmt"] == "yuv420p",
+              "progressive": v.get("field_order", "progressive") in ("progressive", "unknown"),
+              "aac audio": a["codec_name"] == "aac",
+              "duration ~18.0s": abs(dur - 18.0) < 0.3,
+              "size < 4GB": size < 4000,
+          }
+          print(f"\nparallax-room-IG-1080p30.mp4  {size:.1f} MB  {int(p['format']['bit_rate']) / 1e6:.1f} Mbps")
+          ok = True
+          for k, good in checks.items():
+              print(("  OK   " if good else "  FAIL ") + k); ok &= good
+          sys.exit(0 if ok else 1)
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: parallax-room-instagram
+          path: |
+            out/parallax-room-IG-1080p30.mp4
+            out/parallax-room-cover-1080x1920.jpg
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: parallax-room-4k-master
+          path: out/parallax-room-4k-master.mp4
+          retention-days: 14

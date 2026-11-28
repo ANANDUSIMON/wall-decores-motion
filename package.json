@@ -44,6 +44,7 @@
     "@remotion/three": "4.0.531",
     "@remotion/transitions": "4.0.531",
     "gsap": "3.15.1",
+    "kokoro-js": "^1.2.1",
     "postprocessing": "^6.39.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",

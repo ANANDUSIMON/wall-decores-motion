@@ -1,0 +1,43 @@
+name: Generate voiceover (Kokoro-82M)
+
+on:
+  workflow_dispatch:
+    inputs:
+      script_file:
+        description: Path to the script text file (repo-relative)
+        required: true
+      voice:
+        description: Kokoro voice id (e.g. af_heart, af_bella, am_michael, bm_george)
+        required: false
+        default: af_heart
+      out_path:
+        description: Output WAV path (repo-relative)
+        required: false
+        default: public/audio/voiceover.wav
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Generate voiceover
+        run: |
+          node scripts/voiceover/generate.mjs \
+            --file "${{ inputs.script_file }}" \
+            --voice "${{ inputs.voice }}" \
+            --out "${{ inputs.out_path }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: voiceover-wav
+          path: ${{ inputs.out_path }}
+          retention-days: 7
